@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.1...v0.1.2) (2026-04-16)
+
+### Bug Fixes
+
+- keep generated changelog out of prettier checks ([cc59ef4](https://github.com/GonkaGate/hermes-agent-setup/commit/cc59ef4a4e0bcb985168be597b373b8916b0d80a))
+
 ## [0.1.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.0...v0.1.1) (2026-04-15)
 
 
