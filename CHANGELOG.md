@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.0...v0.1.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* release merged Windows CI stabilization ([7f81ffb](https://github.com/GonkaGate/hermes-agent-setup/commit/7f81ffb6471eef69bf5a6521093f5480b482515b))
+
 ## [0.1.0] - 2026-04-16
 
 ### Added
