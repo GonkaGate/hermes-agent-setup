@@ -1,3 +1,4 @@
+import { execFile } from "node:child_process";
 import { createServer, type IncomingMessage } from "node:http";
 import {
   chmod,
@@ -11,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { delimiter, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { CONTRACT_METADATA } from "../../src/constants/contract.js";
 import {
   createNodeOnboardDependencies,
@@ -98,6 +100,7 @@ const fixtureRoot = fileURLToPath(
 const fakeHermesFixturePath = fileURLToPath(
   new URL("./fake-hermes.mjs", import.meta.url),
 );
+const execFileAsync = promisify(execFile);
 
 export async function createHermesIntegrationHarness(options: {
   fixture: string;
@@ -190,9 +193,40 @@ export async function createHermesIntegrationHarness(options: {
     },
     createDependencies(overrides = {}) {
       const runtimeOverrides = overrides.runtime ?? {};
+      const runtimeEnv = {
+        ...baseEnv,
+        ...fakeHermesEnv,
+        ...runtimeOverrides.env,
+      };
 
       return createNodeOnboardDependencies({
-        commands: overrides.commands,
+        commands: {
+          ...overrides.commands,
+          async execFile(file, args, execOptions) {
+            if (overrides.commands?.execFile !== undefined) {
+              return await overrides.commands.execFile(file, args, execOptions);
+            }
+
+            // `execFile()` cannot launch `.cmd` shims on Windows, so invoke
+            // the fake Hermes script through Node directly for CI coverage.
+            if (
+              process.platform === "win32" &&
+              file === "hermes" &&
+              hasInstalledFakeHermes(runtimeEnv)
+            ) {
+              return await runExecFile(
+                process.execPath,
+                [fakeHermesFixturePath, ...args],
+                {
+                  cwd: execOptions?.cwd,
+                  env: execOptions?.env ?? runtimeEnv,
+                },
+              );
+            }
+
+            return await runExecFile(file, args, execOptions);
+          },
+        },
         fs: overrides.fs,
         http: overrides.http,
         prompts: {
@@ -201,11 +235,7 @@ export async function createHermesIntegrationHarness(options: {
         },
         runtime: {
           cwd: runtimeOverrides.cwd ?? workspaceDir,
-          env: {
-            ...baseEnv,
-            ...fakeHermesEnv,
-            ...runtimeOverrides.env,
-          },
+          env: runtimeEnv,
           ...(runtimeOverrides.nodeVersion === undefined
             ? {}
             : { nodeVersion: runtimeOverrides.nodeVersion }),
@@ -435,4 +465,70 @@ async function readRequestBody(request: IncomingMessage): Promise<string> {
   }
 
   return body;
+}
+
+function hasInstalledFakeHermes(env: NodeJS.ProcessEnv): boolean {
+  return (
+    typeof env.GONKAGATE_FAKE_HERMES_INVOCATIONS_FILE === "string" &&
+    env.GONKAGATE_FAKE_HERMES_INVOCATIONS_FILE.trim().length > 0
+  );
+}
+
+async function runExecFile(
+  file: string,
+  args: readonly string[],
+  options?: {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+  },
+) {
+  try {
+    const result = await execFileAsync(file, [...args], {
+      cwd: options?.cwd,
+      encoding: "utf8",
+      env: options?.env,
+      windowsHide: true,
+    });
+
+    return {
+      exitCode: 0,
+      signal: null,
+      stderr: result.stderr,
+      stdout: result.stdout,
+    };
+  } catch (error) {
+    if (isExecFileExitError(error)) {
+      return {
+        exitCode: error.code ?? 1,
+        signal: error.signal ?? null,
+        stderr: toText(error.stderr),
+        stdout: toText(error.stdout),
+      };
+    }
+
+    throw error;
+  }
+}
+
+function isExecFileExitError(error: unknown): error is Error & {
+  code?: number;
+  signal?: NodeJS.Signals | null;
+  stderr?: string | Buffer;
+  stdout?: string | Buffer;
+} {
+  return (
+    error instanceof Error && "code" in error && typeof error.code === "number"
+  );
+}
+
+function toText(value: string | Buffer | undefined): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value instanceof Buffer) {
+    return value.toString("utf8");
+  }
+
+  return "";
 }
