@@ -1,114 +1,92 @@
 # @gonkagate/hermes-agent-setup
 
-`@gonkagate/hermes-agent-setup` is the onboarding CLI for people who already
-use `hermes-agent` and want GonkaGate configured as their primary
-OpenAI-compatible endpoint without hand-editing `~/.hermes/config.yaml` or
-`~/.hermes/.env`.
+`@gonkagate/hermes-agent-setup` is a small onboarding helper for people who use
+`hermes-agent` and want it configured to use
+[GonkaGate](https://gonkagate.com) without manually editing
+`~/.hermes/config.yaml` or `~/.hermes/.env`.
 
-If you only remember one command, make it this:
+If that is what you need, run this:
 
 ```bash
 npx @gonkagate/hermes-agent-setup
 ```
 
-The shipped helper resolves the active Hermes context, classifies competing
-runtime state, prompts for a hidden GonkaGate `gp-...` key, intersects the
-live `GET /v1/models` catalog with checked-in launch qualification artifacts,
-writes the minimum safe Hermes config surface, stores the secret only in
-`~/.hermes/.env`, and rolls back if a later write fails.
+The public entrypoint is `npx @gonkagate/hermes-agent-setup`. The installed
+primary bin is `hermes-agent-setup`.
 
-## What The Helper Does
+## Is This For You?
 
-- resolves `config.yaml` and `.env` through Hermes-owned path seams, including
-  explicit `--profile <name>`
-- checks Node, TTY, platform, Hermes availability, and managed-install guards
-  before any prompt or write
-- reads `config.yaml`, `.env`, `auth.json`, and `cron/jobs.json` into a
-  release-pinned normalized Hermes view for conflict classification
-- detects shared `OPENAI_API_KEY`, `OPENAI_BASE_URL`, matching provider-entry,
-  and matching auth-pool conflicts before writing anything
-- prompts for the key only through a hidden interactive prompt
-- writes only `model.provider`, `model.base_url`, `model.default`, and
-  `OPENAI_API_KEY`, plus conflict-only cleanup allowed by the PRD
-- writes `config.yaml` before `.env`, creates same-run backups, and rolls back
-  if the later `.env` write fails
+This helper is for you if you want Hermes to use GonkaGate as its primary
+OpenAI-compatible endpoint through `provider: custom` and
+`https://api.gonkagate.com/v1`.
 
-## Current Product Truth
+You should also have:
 
-The current shipped runtime is intentionally narrow:
+- `hermes-agent` available on your machine
+- a GonkaGate API key
+- an interactive terminal
+- Linux, macOS, or WSL2
 
-- public entrypoint: `npx @gonkagate/hermes-agent-setup`
-- installed primary bin: `hermes-agent-setup`
-- canonical base URL: `https://api.gonkagate.com/v1`
-- integration path: `provider: custom`
-- launch platforms: Linux, macOS, and WSL2
-- unsupported at launch: native Windows, Android, and Termux
-- current checked-in allowlist: `qwen/qwen3-235b-a22b-instruct-2507-fp8`
+Public onboarding is not positioned for users or entities in the United States
+of America or U.S. territories.
 
-The helper does not:
+## What Happens During Setup
 
-- replace `hermes setup`
-- mutate shell profiles
-- accept arbitrary custom base URLs
-- mutate `auth.json` credential pools
-- claim that a successful `GET /v1/models` proves billing or first-request
-  readiness
+In plain language, the helper:
 
-Public onboarding also inherits current GonkaGate availability boundaries and
-is not positioned for users or entities in the United States of America or
-U.S. territories.
+- finds the active Hermes config, including `--profile <name>` if you use one
+- asks for your GonkaGate key through a hidden prompt
+- calls `GET /v1/models`, compares the live catalog with checked-in launch
+  qualification artifacts, and offers only currently qualified models
+- writes the minimum Hermes settings needed for GonkaGate
+- rolls back if a later write fails
 
-## Safe Inputs And Files
+This is an onboarding helper, not a full Hermes installer or deep verifier. A
+successful `GET /v1/models` check confirms auth and model visibility only. It
+does not prove billing, quota, or first-request readiness.
 
-Safe secret behavior:
+## What It Changes
 
-- the public flow accepts the GonkaGate key only through a hidden prompt
-- the key is saved only in the resolved Hermes `.env` file
-- the key is never written to `config.yaml`
-- CLI diagnostics redact raw `gp-...` keys and `Bearer` tokens
-
-The important managed locations are:
+The helper manages these Hermes files:
 
 - `~/.hermes/config.yaml`
 - `~/.hermes/.env`
-- `docs/launch-qualification/hermes-agent-setup/`
 
-## Launch Qualification
+It configures Hermes to use:
 
-Runtime model selection is driven by checked-in launch qualification artifacts
-under:
+- `provider: custom`
+- `https://api.gonkagate.com/v1`
 
-`docs/launch-qualification/hermes-agent-setup/<hermes-release-tag>/<model-slug>.md`
+Your GonkaGate key is stored only in `~/.hermes/.env`. It is never written to
+`config.yaml`.
 
-The shipped helper only offers models that are both:
+When setup succeeds, the helper writes only the GonkaGate-managed surface:
 
-1. present in the checked-in allowlist for the pinned Hermes release
-2. still visible in the live GonkaGate `/v1/models` catalog
+- `model.provider`
+- `model.base_url`
+- `model.default`
+- `OPENAI_API_KEY`
 
-Use the maintainer scripts under
-[`scripts/launch-qualification/`](./scripts/launch-qualification/) to prepare
-clean-home runs, build artifacts, and validate the checked-in artifact tree.
+## Important Limits
 
-## Docs
+The shipped helper intentionally stays narrow:
 
-The most important repository contract docs are:
+- it does not replace `hermes setup`
+- it does not accept arbitrary custom base URLs
+- it does not mutate shell profiles
+- it does not mutate `auth.json` credential pools
+- it does not support native Windows
+- it does not claim full first-request verification beyond `GET /v1/models`
 
-- [PRD](./docs/specs/hermes-agent-setup-prd/spec.md)
+The current checked-in launch qualification artifacts include:
+
+- `qwen/qwen3-235b-a22b-instruct-2507-fp8`
+
+If you need general Hermes setup help or deeper product context first, start at
+[gonkagate.com](https://gonkagate.com).
+
+## Learn More
+
 - [How It Works](./docs/how-it-works.md)
 - [Security](./docs/security.md)
-- [Launch Qualification](./docs/launch-qualification/hermes-agent-setup/README.md)
-- [Release Readiness](./docs/release-readiness/hermes-agent-setup-v1.md)
-
-## Development
-
-```bash
-npm install
-npm run dev
-```
-
-Useful commands:
-
-- `npm run typecheck`
-- `npm test`
-- `npm run qualification:artifact:validate`
-- `npm run ci`
+- [Product Spec](./docs/specs/hermes-agent-setup-prd/spec.md)
