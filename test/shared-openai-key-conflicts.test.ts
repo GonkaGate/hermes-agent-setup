@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmod } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import { classifySharedOpenAiKeyConflicts } from "../src/hermes/conflicts/shared-openai-key.js";
@@ -215,9 +215,19 @@ test("shared OPENAI_API_KEY classification fails safely when cron/jobs.json exis
 
   try {
     await harness.installFakeHermesOnPath();
-    await chmod(cronJobsPath, 0);
+    const readResult = await loadNormalizedReadForFixture(harness, {
+      dependencyOverrides: {
+        fs: {
+          async readFile(path, encoding) {
+            if (path === cronJobsPath) {
+              throw createPermissionError("blocked cron/jobs.json read");
+            }
 
-    const readResult = await loadNormalizedReadForFixture(harness);
+            return await readFile(path, encoding);
+          },
+        },
+      },
+    });
 
     assert.equal(readResult.ok, false);
 
@@ -227,7 +237,13 @@ test("shared OPENAI_API_KEY classification fails safely when cron/jobs.json exis
 
     assert.equal(readResult.failure.code, "cron_config_read_failed");
   } finally {
-    await chmod(cronJobsPath, 0o644).catch(() => undefined);
     await harness.cleanup();
   }
 });
+
+function createPermissionError(message: string): NodeJS.ErrnoException {
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = "EACCES";
+
+  return error;
+}
