@@ -49,6 +49,10 @@ test("phase-four execution creates deterministic backups, writes config first, a
   const envPath = resolve(harness.hermesHomeDir, ".env");
   const beforeConfig = readFileSync(configPath, "utf8");
   const beforeEnv = readFileSync(envPath, "utf8");
+  const chmodRequests: Array<{
+    mode: number;
+    path: string;
+  }> = [];
   const writeOrder: string[] = [];
 
   try {
@@ -72,9 +76,15 @@ test("phase-four execution creates deterministic backups, writes config first, a
 
     const executionResult = await executePhaseFourWritePlan(
       writePlanResult.result,
-      harness.createDependencies(
-        createStandardDependencyOverrides(server.createFetchOverride()),
-      ),
+      harness.createDependencies({
+        ...createStandardDependencyOverrides(server.createFetchOverride()),
+        fs: {
+          async chmod(path, mode) {
+            chmodRequests.push({ mode, path });
+            await chmod(path, mode);
+          },
+        },
+      }),
       {
         atomicWriter: async (path, contents, options) => {
           writeOrder.push(path);
@@ -103,7 +113,14 @@ test("phase-four execution creates deterministic backups, writes config first, a
       ),
       beforeEnv,
     );
-    assert.equal((await stat(envPath)).mode & 0o777, 0o600);
+    assert.deepEqual(
+      chmodRequests.filter((request) => request.path === envPath),
+      [{ mode: 0o600, path: envPath }],
+    );
+
+    if (process.platform !== "win32") {
+      assert.equal((await stat(envPath)).mode & 0o777, 0o600);
+    }
   } finally {
     await server.close();
     await harness.cleanup();

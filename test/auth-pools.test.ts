@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmod } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import { classifyAuthPoolConflict } from "../src/hermes/conflicts/auth-pools.js";
@@ -111,9 +111,19 @@ test("auth pool loading fails safely when auth.json exists but cannot be read", 
 
   try {
     await harness.installFakeHermesOnPath();
-    await chmod(authPath, 0);
+    const readResult = await loadNormalizedReadForFixture(harness, {
+      dependencyOverrides: {
+        fs: {
+          async readFile(path, encoding) {
+            if (path === authPath) {
+              throw createPermissionError("blocked auth.json read");
+            }
 
-    const readResult = await loadNormalizedReadForFixture(harness);
+            return await readFile(path, encoding);
+          },
+        },
+      },
+    });
 
     assert.equal(readResult.ok, false);
 
@@ -123,7 +133,13 @@ test("auth pool loading fails safely when auth.json exists but cannot be read", 
 
     assert.equal(readResult.failure.code, "auth_config_read_failed");
   } finally {
-    await chmod(authPath, 0o644).catch(() => undefined);
     await harness.cleanup();
   }
 });
+
+function createPermissionError(message: string): NodeJS.ErrnoException {
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = "EACCES";
+
+  return error;
+}
