@@ -1,0 +1,12 @@
+model:
+  provider: auto
+  base_url: ${OPENAI_BASE_URL}
+smart_model_routing:
+  enabled: true
+  cheap_model:
+    base_url: ${CHEAP_BASE_URL}
+    api_key_env: CHEAP_API_KEY
+providers:
+  gonkagate:
+    api: ${GONKAGATE_PROVIDER_API}
+    transport: openai_chat

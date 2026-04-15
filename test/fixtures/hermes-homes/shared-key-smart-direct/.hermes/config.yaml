@@ -1,0 +1,8 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+smart_model_routing:
+  enabled: true
+  cheap_model:
+    base_url: https://cheap-direct.example/v1
+    api_key_env: CHEAP_SMART_KEY

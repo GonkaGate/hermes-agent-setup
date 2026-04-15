@@ -1,0 +1,11 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+providers:
+  gonkagate:
+    api: https://api.gonkagate.com/v1
+    key_env: OPENAI_API_KEY
+custom_providers:
+  legacy-gonkagate:
+    base_url: https://api.gonkagate.com/v1
+    key_env: OPENAI_API_KEY

@@ -1,0 +1,6 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+providers:
+  gonkagate:
+    api: https://api.gonkagate.com/v1

@@ -1,0 +1,4 @@
+provider: custom
+base_url: https://legacy-endpoint.example/v1
+model:
+  default: qwen3-32b

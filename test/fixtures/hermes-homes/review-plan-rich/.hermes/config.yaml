@@ -1,0 +1,15 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+  api_key: inline-main-secret
+  api: https://stale-main-endpoint.example/v1
+  api_mode: codex_responses
+providers:
+  gonkagate:
+    api: https://api.gonkagate.com/v1
+    api_key: inline-provider-key
+    transport: responses
+    api_mode: codex_responses
+auxiliary:
+  vision:
+    provider: openrouter

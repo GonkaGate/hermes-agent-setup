@@ -1,0 +1,3 @@
+model:
+  provider: custom
+  default: qwen3-32b

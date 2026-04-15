@@ -1,0 +1,7 @@
+[
+  {
+    "id": "nightly-gonkagate",
+    "base_url": "https://api.gonkagate.com/v1",
+    "model": "qwen3-32b"
+  }
+]

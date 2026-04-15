@@ -1,0 +1,16 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+auxiliary:
+  vision:
+    provider: openrouter
+  web_extract:
+    base_url: https://auxiliary-web.example/v1
+delegation:
+  base_url: https://delegation.example/v1
+fallback_model:
+  base_url: https://fallback.example/v1
+tts:
+  provider: openai
+stt:
+  provider: openai

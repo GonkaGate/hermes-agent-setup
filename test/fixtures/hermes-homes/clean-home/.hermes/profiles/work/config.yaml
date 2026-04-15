@@ -1,0 +1,4 @@
+model:
+  provider: custom
+  base_url: https://api.gonkagate.com/v1
+  default: qwen3-235b-a22b
