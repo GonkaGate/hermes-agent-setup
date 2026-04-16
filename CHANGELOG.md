@@ -2,12 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.3](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.2...v0.1.3) (2026-04-15)
-
+## [0.1.3](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.2...v0.1.3) (2026-04-16)
 
 ### Bug Fixes
 
-* release merged Windows CI stabilization ([7f81ffb](https://github.com/GonkaGate/hermes-agent-setup/commit/7f81ffb6471eef69bf5a6521093f5480b482515b))
+- support `NPM_TOKEN` fallback for npm publish automation when trusted publishing is unavailable
 
 ## [0.1.2](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.1...v0.1.2) (2026-04-16)
 

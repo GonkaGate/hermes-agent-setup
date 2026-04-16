@@ -20,6 +20,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: release
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -36,7 +38,22 @@ jobs:
       - run: npm ci
       - run: npm run ci
 
+      - name: Select npm auth mode
+        id: npm_auth
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo "mode=token" >>"$GITHUB_OUTPUT"
+            echo "Using NPM_TOKEN authentication."
+          else
+            echo "mode=trusted-publishing" >>"$GITHUB_OUTPUT"
+            echo "Using npm trusted publishing (OIDC)."
+          fi
+
       - name: OIDC preflight (token exchange)
+        if: steps.npm_auth.outputs.mode == 'trusted-publishing'
         shell: bash
         run: |
           set -euo pipefail
@@ -75,4 +92,12 @@ jobs:
 
       - name: Publish
         if: inputs.action == 'publish' && steps.publish_check.outputs.should_publish == 'true'
-        run: npm publish --provenance --access public
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ steps.npm_auth.outputs.mode }}" == "token" ]]; then
+            npm publish --access public
+          else
+            npm publish --provenance --access public
+          fi
