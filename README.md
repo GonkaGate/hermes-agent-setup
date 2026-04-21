@@ -1,15 +1,27 @@
 # @gonkagate/hermes-agent-setup
 
-`@gonkagate/hermes-agent-setup` is a small onboarding helper for people who use
-`hermes-agent` and want it configured to use
-[GonkaGate](https://gonkagate.com) without manually editing
-`~/.hermes/config.yaml` or `~/.hermes/.env`.
-
-If that is what you need, run this:
+Set up `hermes-agent` to use GonkaGate in one `npx` command.
 
 ```bash
 npx @gonkagate/hermes-agent-setup
 ```
+
+![Package](https://img.shields.io/badge/package-%40gonkagate%2Fhermes--agent--setup-6E63FF?style=flat-square)
+![Node](https://img.shields.io/badge/node-%3E%3D22.14.0-4DA2FF?style=flat-square)
+![License](https://img.shields.io/badge/license-Apache--2.0-2A2A2A?style=flat-square)
+
+[![Website](https://img.shields.io/badge/Website-gonkagate.com-111827?style=flat-square)](https://gonkagate.com/en)
+[![Docs](https://img.shields.io/badge/Docs-API%20Guides-2563EB?style=flat-square)](https://gonkagate.com/en/docs)
+[![API%20Key](https://img.shields.io/badge/API%20Key-Dashboard-F97316?style=flat-square)](https://gonkagate.com/en/register)
+[![Telegram](https://img.shields.io/badge/Telegram-%40gonkagate-229ED9?style=flat-square&logo=telegram&logoColor=white)](https://t.me/gonkagate)
+[![X](https://img.shields.io/badge/X-%40gonkagate-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/gonkagate)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-GonkaGate-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/gonkagate)
+
+## Overview
+
+`@gonkagate/hermes-agent-setup` is a small onboarding helper for people who
+use `hermes-agent` and want it configured to use GonkaGate without manually
+editing `~/.hermes/config.yaml` or `~/.hermes/.env`.
 
 The public entrypoint is `npx @gonkagate/hermes-agent-setup`. The installed
 primary bin is `hermes-agent-setup`.
