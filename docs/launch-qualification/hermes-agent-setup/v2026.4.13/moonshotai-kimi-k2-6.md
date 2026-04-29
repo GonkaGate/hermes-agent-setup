@@ -1,16 +1,16 @@
 ---
-modelId: qwen/qwen3-235b-a22b-instruct-2507-fp8
-qualifiedOn: 2026-04-15
+modelId: moonshotai/Kimi-K2.6
+qualifiedOn: 2026-04-29
 hermesReleaseTag: v2026.4.13
 hermesCommit: launch-qualification-recorded-internal
 osCoverage:
   - linux
   - macos
   - wsl2
-recommended: false
+recommended: true
 ---
 
-# `qwen/qwen3-235b-a22b-instruct-2507-fp8`
+# `moonshotai/Kimi-K2.6`
 
 This record defines the checked-in allowlist entry consumed by the shipped
 runtime for the pinned Hermes release.
@@ -21,7 +21,7 @@ runtime for the pinned Hermes release.
 model:
   provider: custom
   base_url: https://api.gonkagate.com/v1
-  default: qwen/qwen3-235b-a22b-instruct-2507-fp8
+  default: moonshotai/Kimi-K2.6
 ```
 
 ## Sanitized Env Shape
