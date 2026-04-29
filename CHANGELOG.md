@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.3...v0.2.0) (2026-04-29)
+
+
+### Features
+
+* add Kimi K2.6 launch qualification ([0575946](https://github.com/GonkaGate/hermes-agent-setup/commit/0575946304b64cd6bd9beca3b9b114bd7b93ef06))
+* add Kimi K2.6 launch qualification ([9edd5bd](https://github.com/GonkaGate/hermes-agent-setup/commit/9edd5bdaf724bf053ea53b14481241eb80998e6f))
+
 ## [0.1.3](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.2...v0.1.3) (2026-04-16)
 
 ### Bug Fixes
