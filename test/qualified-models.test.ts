@@ -41,6 +41,23 @@ test("qualified-model loader reads a valid checked-in artifact", async () => {
   assert.equal(result.result.artifacts[0]?.recommended, true);
 });
 
+test("checked-in launch artifacts recommend Kimi K2.6 as the default", async () => {
+  const result = await loadQualifiedModelArtifacts(createDependencies());
+
+  assert.equal(result.ok, true);
+
+  if (!result.ok) {
+    return;
+  }
+
+  assert.deepEqual(
+    result.result.artifacts
+      .filter((artifact) => artifact.recommended)
+      .map((artifact) => artifact.modelId),
+    ["moonshotai/Kimi-K2.6"],
+  );
+});
+
 test("qualified-model loader rejects malformed front matter", async () => {
   const result = await loadQualifiedModelArtifacts(createDependencies(), {
     artifactsRoot: resolveQualificationFixture("bad-front-matter"),

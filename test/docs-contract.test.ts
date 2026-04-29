@@ -16,6 +16,7 @@ test("required docs files exist", () => {
     "docs/how-it-works.md",
     "docs/security.md",
     "docs/launch-qualification/hermes-agent-setup/README.md",
+    "docs/launch-qualification/hermes-agent-setup/v2026.4.13/moonshotai-kimi-k2-6.md",
     "docs/launch-qualification/hermes-agent-setup/v2026.4.13/qwen-qwen3-235b-a22b-instruct-2507-fp8.md",
     "docs/release-readiness/hermes-agent-setup-v1.md",
     "docs/specs/hermes-agent-setup-prd/spec.md",
@@ -41,6 +42,7 @@ test("README captures the shipped helper contract", () => {
   assert.match(readme, /~\/\.hermes\/\.env/);
   assert.match(readme, /GET \/v1\/models/);
   assert.match(readme, /launch qualification artifacts/i);
+  assert.match(readme, /moonshotai\/Kimi-K2\.6/);
   assert.match(readme, /qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
   assert.match(readme, /United States of America|U\.S\. territories/i);
   assert.match(readme, /docs\/specs\/hermes-agent-setup-prd\/spec\.md/);
@@ -121,5 +123,6 @@ test("docs index and release readiness label current versus historical surfaces 
   assert.match(readiness, /npm run ci/);
   assert.match(readiness, /npm pack --dry-run/);
   assert.match(readiness, /qualification:artifact:validate/);
+  assert.match(readiness, /moonshotai\/Kimi-K2\.6/);
   assert.match(readiness, /qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
 });

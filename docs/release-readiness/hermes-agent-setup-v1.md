@@ -11,8 +11,10 @@ for the v1 Hermes contract:
 - canonical base URL: `https://api.gonkagate.com/v1`
 - pinned Hermes release for qualification artifacts: `v2026.4.13`
 
-The current checked-in allowlist is the artifact-backed model
-`qwen/qwen3-235b-a22b-instruct-2507-fp8`.
+The current checked-in allowlist includes these artifact-backed models:
+
+- `moonshotai/Kimi-K2.6` (recommended default)
+- `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 ## Qualification Sources
 
@@ -26,8 +28,9 @@ Maintainer tooling for new or refreshed qualification evidence lives under:
 - `scripts/launch-qualification/build-artifact.mjs`
 - `scripts/launch-qualification/validate-artifacts.mjs`
 
-Current checked-in artifact:
+Current checked-in artifacts:
 
+- `docs/launch-qualification/hermes-agent-setup/v2026.4.13/moonshotai-kimi-k2-6.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.4.13/qwen-qwen3-235b-a22b-instruct-2507-fp8.md`
 
 ## FR Coverage Map
