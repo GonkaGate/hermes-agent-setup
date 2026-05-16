@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.2.0...v0.2.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* align kimi qualification artifact id ([54b7e03](https://github.com/GonkaGate/hermes-agent-setup/commit/54b7e03f1fbafa8d3ee08828dfb974e316f904b7))
+* align kimi qualification artifact id ([fd69f72](https://github.com/GonkaGate/hermes-agent-setup/commit/fd69f726bd1817090f16c7722113f0a9374786d3))
+
 ## [0.2.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.1.3...v0.2.0) (2026-04-29)
 
 
