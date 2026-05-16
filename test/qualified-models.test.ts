@@ -14,6 +14,14 @@ const qualificationFixtureRoot = resolve(
   "fixtures",
   "launch-qualification",
 );
+const checkedInQualificationRoot = resolve(
+  testDir,
+  "..",
+  "docs",
+  "launch-qualification",
+  "hermes-agent-setup",
+  "v2026.4.13",
+);
 
 function createDependencies() {
   return createNodeOnboardDependencies();
@@ -121,6 +129,38 @@ test("qualified live models are intersected with the live catalog and sorted by 
   assert.deepEqual(
     result.result.qualifiedLiveModels.map((model) => model.modelId),
     ["alpha/model-a", "qwen/qwen3-235b-a22b-instruct-2507-fp8"],
+  );
+});
+
+test("checked-in Kimi artifact matches the live catalog model id casing", async () => {
+  const result = await loadQualifiedLiveModels(
+    {
+      modelIds: [
+        "moonshotai/kimi-k2.6",
+        "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+      ],
+    },
+    createDependencies(),
+    {
+      artifactsRoot: checkedInQualificationRoot,
+    },
+  );
+
+  assert.equal(result.ok, true);
+
+  if (!result.ok) {
+    return;
+  }
+
+  assert.deepEqual(
+    result.result.qualifiedLiveModels.map((model) => model.modelId),
+    ["moonshotai/kimi-k2.6", "qwen/qwen3-235b-a22b-instruct-2507-fp8"],
+  );
+  assert.equal(
+    result.result.qualifiedLiveModels.find(
+      (model) => model.modelId === "moonshotai/kimi-k2.6",
+    )?.recommended,
+    true,
   );
 });
 

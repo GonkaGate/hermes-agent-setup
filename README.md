@@ -80,6 +80,7 @@ The shipped helper intentionally stays narrow:
 
 The current checked-in launch qualification artifacts include:
 
+- `moonshotai/kimi-k2.6`
 - `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 If you need general Hermes setup help or deeper product context first, start at
