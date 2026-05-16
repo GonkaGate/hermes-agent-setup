@@ -11,9 +11,10 @@ for the v1 Hermes contract:
 - canonical base URL: `https://api.gonkagate.com/v1`
 - pinned Hermes release for qualification artifacts: `v2026.4.13`
 
-The current checked-in allowlist contains the artifact-backed models
-`moonshotai/kimi-k2.6` and
-`qwen/qwen3-235b-a22b-instruct-2507-fp8`.
+The current checked-in allowlist includes these artifact-backed models:
+
+- `moonshotai/kimi-k2.6` (recommended default)
+- `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 ## Qualification Sources
 
