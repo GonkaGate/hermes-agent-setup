@@ -1,5 +1,5 @@
 ---
-modelId: moonshotai/Kimi-K2.6
+modelId: moonshotai/kimi-k2.6
 qualifiedOn: 2026-05-24
 hermesReleaseTag: v2026.5.16
 hermesCommit: a91a57fa5a13d516c38b07a141a9ce8a3daabeb0
@@ -10,7 +10,7 @@ osCoverage:
 recommended: true
 ---
 
-# `moonshotai/Kimi-K2.6`
+# `moonshotai/kimi-k2.6`
 
 This record defines the checked-in allowlist entry consumed by the shipped
 runtime for the latest-only Hermes release contract.
@@ -21,7 +21,7 @@ runtime for the latest-only Hermes release contract.
 model:
   provider: custom
   base_url: https://api.gonkagate.com/v1
-  default: moonshotai/Kimi-K2.6
+  default: moonshotai/kimi-k2.6
 ```
 
 ## Sanitized Env Shape

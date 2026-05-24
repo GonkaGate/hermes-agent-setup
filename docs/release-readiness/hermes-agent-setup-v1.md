@@ -14,7 +14,7 @@ for the v1 Hermes contract:
 
 The current checked-in allowlist includes these artifact-backed models:
 
-- `moonshotai/Kimi-K2.6` (recommended default)
+- `moonshotai/kimi-k2.6` (recommended default)
 - `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 ## Qualification Sources
