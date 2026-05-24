@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.2.1...v1.0.0) (2026-05-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Hermes versions below v0.14.0 and legacy endpoint paths such as OPENAI_BASE_URL, LLM_MODEL, root-level provider/base_url, and legacy custom_providers are no longer supported by the helper.
+
+### Features
+
+* target latest Hermes contract ([f3beac3](https://github.com/GonkaGate/hermes-agent-setup/commit/f3beac39bce473f2b1245973d092a657b9bc281e))
+
 ## [0.2.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.2.0...v0.2.1) (2026-05-16)
 
 
