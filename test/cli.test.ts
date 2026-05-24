@@ -189,6 +189,51 @@ test("missing Hermes on PATH aborts before the command can continue", async () =
   assert.equal(stderr.contents, "");
 });
 
+test("unsupported Hermes versions print concrete upgrade commands", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const stdout = createBufferWriter();
+  const stderr = createBufferWriter();
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionOutput: "hermes-agent 0.11.0",
+    });
+
+    const result = await run([], {
+      dependencies: harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+      stderr,
+      stdout,
+    });
+
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.result?.status, "failure");
+    assert.equal(result.result?.code, "unsupported_hermes_version");
+    assert.match(stdout.contents, /GonkaGate onboarding failed\./);
+    assert.match(
+      stdout.contents,
+      /Hermes Agent 0\.11\.0 is below the supported floor 0\.14\.0 \(v2026\.5\.16\)\./,
+    );
+    assert.match(stdout.contents, /Run `hermes update` first/);
+    assert.match(stdout.contents, /pip install --upgrade hermes-agent/);
+    assert.match(stdout.contents, /uv pip install --upgrade hermes-agent/);
+    assert.equal(stderr.contents, "");
+    assert.deepEqual(await harness.readFakeHermesInvocations(), [
+      ["--version"],
+    ]);
+  } finally {
+    await harness.cleanup();
+  }
+});
+
 test("missing TTY aborts before the helper calls Hermes", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",
