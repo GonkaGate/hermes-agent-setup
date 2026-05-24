@@ -13,7 +13,7 @@ function createQualifiedLiveModel(
   return {
     artifactPath: `/tmp/${modelId}.md`,
     hermesCommit: "abcdef1234567890",
-    hermesReleaseTag: "v2026.4.13",
+    hermesReleaseTag: "v2026.5.16",
     modelId,
     osCoverage: ["linux", "macos", "wsl2"],
     qualifiedOn: "2026-04-15",

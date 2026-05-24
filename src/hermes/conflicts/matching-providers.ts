@@ -1,7 +1,6 @@
 import type {
   MatchingProviderConflict,
   MatchingProviderMatch,
-  MatchingProviderScrubField,
 } from "../../domain/conflicts.js";
 import type { NormalizedHermesRead } from "../normalized-read.js";
 
@@ -12,7 +11,6 @@ export function classifyMatchingProviders(
     .filter((entry) => entry.canonicalUrlFieldKeys.length > 0)
     .map<MatchingProviderMatch>((entry) => ({
       entry,
-      scrubFields: collectScrubFields(entry),
     }));
 
   if (matchingEntries.length === 0) {
@@ -34,7 +32,24 @@ export function classifyMatchingProviders(
 
   const [singleMatch] = matchingEntries;
 
-  if (singleMatch === undefined || singleMatch.scrubFields.length === 0) {
+  if (singleMatch === undefined) {
+    return {
+      kind: "matching_provider",
+      matchingEntries: [],
+      status: "none",
+    };
+  }
+
+  if (singleMatch.entry.sourceShape === "custom_providers") {
+    return {
+      kind: "matching_provider",
+      matchingEntries,
+      reason: "legacy_custom_provider_entry",
+      status: "blocking",
+    };
+  }
+
+  if (!hasCompetingProviderSelectors(singleMatch.entry)) {
     return {
       kind: "matching_provider",
       matchingEntries,
@@ -44,53 +59,21 @@ export function classifyMatchingProviders(
 
   return {
     kind: "matching_provider",
-    matchingEntries: [singleMatch],
-    status: "scrubbable",
+    matchingEntries,
+    reason: "competing_provider_selectors",
+    status: "blocking",
   };
 }
 
-function collectScrubFields(
+function hasCompetingProviderSelectors(
   entry: NormalizedHermesRead["namedCustomProviders"][number],
-): readonly MatchingProviderScrubField[] {
-  const scrubFields: MatchingProviderScrubField[] = [];
-
-  if (entry.apiKey.length > 0) {
-    scrubFields.push("api_key");
-  }
-
-  if (entry.rawEntry.api_key_env !== undefined) {
-    scrubFields.push("api_key_env");
-  }
-
-  if (entry.rawEntry.key_env !== undefined) {
-    scrubFields.push("key_env");
-  }
-
-  if (entry.apiMode.length > 0 && entry.apiMode !== "chat_completions") {
-    scrubFields.push("api_mode");
-  }
-
-  if (entry.sourceShape === "providers") {
-    if (entry.transport.length > 0 && entry.transport !== "openai_chat") {
-      scrubFields.push("transport");
-    }
-  }
-
-  for (const fieldKey of entry.nonCanonicalUrlFieldKeys) {
-    switch (fieldKey) {
-      case "api":
-        scrubFields.push("api");
-        break;
-      case "url":
-        scrubFields.push("url");
-        break;
-      case "base_url":
-        scrubFields.push("base_url_alias");
-        break;
-      default:
-        break;
-    }
-  }
-
-  return [...new Set(scrubFields)];
+): boolean {
+  return (
+    entry.apiKey.length > 0 ||
+    entry.rawEntry.api_key_env !== undefined ||
+    entry.rawEntry.key_env !== undefined ||
+    (entry.apiMode.length > 0 && entry.apiMode !== "chat_completions") ||
+    (entry.transport.length > 0 && entry.transport !== "openai_chat") ||
+    entry.nonCanonicalUrlFieldKeys.length > 0
+  );
 }

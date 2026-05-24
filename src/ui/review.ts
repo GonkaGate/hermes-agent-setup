@@ -1,7 +1,4 @@
-import type {
-  MatchingProviderScrubField,
-  PreWriteReviewPlan,
-} from "../domain/conflicts.js";
+import type { PreWriteReviewPlan } from "../domain/conflicts.js";
 import type {
   ConfigMutationPlan,
   EnvMutationPlan,
@@ -31,7 +28,6 @@ export function createPhaseFourReview(
     ...renderConfigChanges(input.configPlan),
     ...renderEnvChanges(input.envPlan),
     ...renderConfirmationItems(input.reviewPlan),
-    ...renderAdvisories(input.reviewPlan),
     "",
   ];
 
@@ -91,51 +87,10 @@ function renderConfirmationItems(
           ),
         );
         break;
-      case "file_openai_base_url_cleanup":
-        lines.push(
-          `- Clear file-backed OPENAI_BASE_URL=${item.conflict.value}`,
-        );
-        break;
-      case "matching_provider_scrub": {
-        const [match] = item.conflict.matchingEntries;
-
-        if (match !== undefined) {
-          lines.push(
-            `- Scrub matching provider "${match.entry.name}" fields: ${match.scrubFields
-              .map(formatScrubField)
-              .join(", ")}`,
-          );
-        }
-
-        break;
-      }
       default:
         break;
     }
   }
 
   return lines;
-}
-
-function renderAdvisories(reviewPlan: PreWriteReviewPlan): readonly string[] {
-  if (reviewPlan.advisories.length === 0) {
-    return [];
-  }
-
-  return [
-    "Advisories:",
-    ...reviewPlan.advisories.map(
-      (advisory) =>
-        `- ${advisory.source === "inherited_process" ? "Shell-owned" : "File-backed"} OPENAI_BASE_URL remains visible as ${advisory.value}`,
-    ),
-  ];
-}
-
-function formatScrubField(field: MatchingProviderScrubField): string {
-  switch (field) {
-    case "base_url_alias":
-      return "base_url";
-    default:
-      return field;
-  }
 }

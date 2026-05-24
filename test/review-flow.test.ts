@@ -32,7 +32,7 @@ function createStandardDependencyOverrides(
   };
 }
 
-test("review renderer produces one consolidated block with takeover, base-url cleanup, and provider scrub details", async () => {
+test("review renderer produces one consolidated block with shared-key takeover details", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "review-plan-rich",
   });
@@ -72,14 +72,8 @@ test("review renderer produces one consolidated block with takeover, base-url cl
       writePlanResult.result.review.text,
       /Shared OPENAI_API_KEY takeover affects/,
     );
-    assert.match(
-      writePlanResult.result.review.text,
-      /Clear file-backed OPENAI_BASE_URL=https:\/\/api\.other-provider\.example\/v1/,
-    );
-    assert.match(
-      writePlanResult.result.review.text,
-      /Scrub matching provider "gonkagate" fields: api_key, api_mode, transport/,
-    );
+    assert.doesNotMatch(writePlanResult.result.review.text, /Scrub matching/);
+    assert.doesNotMatch(writePlanResult.result.review.text, /OPENAI_BASE_URL/);
     assert.equal(writePlanResult.result.review.confirmationRequired, true);
   } finally {
     await server.close();
@@ -87,7 +81,7 @@ test("review renderer produces one consolidated block with takeover, base-url cl
   }
 });
 
-test("canonical OPENAI_BASE_URL cleanup appears in review output but skips confirmation", async () => {
+test("canonical OPENAI_BASE_URL is not included in review cleanup", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "canonical-base-url",
   });
@@ -116,7 +110,7 @@ test("canonical OPENAI_BASE_URL cleanup appears in review output but skips confi
     }
 
     assert.equal(writePlanResult.result.review.confirmationRequired, false);
-    assert.match(writePlanResult.result.review.text, /Clear OPENAI_BASE_URL/);
+    assert.doesNotMatch(writePlanResult.result.review.text, /OPENAI_BASE_URL/);
 
     const executionResult = await executePhaseFourWritePlan(
       writePlanResult.result,
@@ -127,6 +121,10 @@ test("canonical OPENAI_BASE_URL cleanup appears in review output but skips confi
 
     assert.equal(executionResult.status, "written");
     assert.deepEqual(harness.readPromptInvocations().selectOptions, []);
+    assert.match(
+      readFileSync(resolve(harness.hermesHomeDir, ".env"), "utf8"),
+      /OPENAI_BASE_URL=https:\/\/api\.gonkagate\.com\/v1/,
+    );
   } finally {
     await server.close();
     await harness.cleanup();

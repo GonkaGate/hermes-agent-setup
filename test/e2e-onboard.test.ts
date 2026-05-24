@@ -83,18 +83,30 @@ test("declining the consolidated confirmation cancels the public flow without to
   }
 });
 
-test("shell-owned non-canonical OPENAI_BASE_URL blocks before prompting for a secret", async () => {
+test("shell-owned non-canonical OPENAI_BASE_URL no longer blocks latest-only flow", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",
+  });
+  const server = await harness.startFakeModelsServer({
+    responseBody: {
+      error: {
+        code: "insufficient_quota",
+      },
+    },
+    statusCode: 429,
   });
   const stdout = createBufferWriter();
   const stderr = createBufferWriter();
 
   try {
     await harness.installFakeHermesOnPath();
+    harness.queueSecretPromptResponses("gp-e2e-secret");
 
     const result = await run([], {
       dependencies: harness.createDependencies({
+        http: {
+          fetch: server.createFetchOverride(),
+        },
         runtime: {
           env: {
             OPENAI_BASE_URL: "https://api.other-provider.example/v1",
@@ -111,10 +123,13 @@ test("shell-owned non-canonical OPENAI_BASE_URL blocks before prompting for a se
 
     assert.equal(result.exitCode, 1);
     assert.equal(result.result?.status, "failure");
-    assert.equal(result.result?.code, "inherited_base_url_conflict");
-    assert.match(stdout.contents, /Unset OPENAI_BASE_URL/i);
-    assert.deepEqual(harness.readPromptInvocations().readSecretMessages, []);
+    assert.equal(result.result?.code, "catalog_auth_failed");
+    assert.doesNotMatch(stdout.contents, /Unset OPENAI_BASE_URL/i);
+    assert.deepEqual(harness.readPromptInvocations().readSecretMessages, [
+      "Enter your GonkaGate API key",
+    ]);
   } finally {
+    await server.close();
     await harness.cleanup();
   }
 });

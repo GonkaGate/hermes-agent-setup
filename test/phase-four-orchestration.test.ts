@@ -91,7 +91,7 @@ test("phase-four orchestration can build and apply the mutation plan end to end"
     });
     assert.equal(
       readFileSync(envPath, "utf8"),
-      "OPENAI_API_KEY=gp-phase-four-secret\n",
+      "OPENAI_API_KEY=gp-phase-four-secret\nOPENAI_BASE_URL=https://api.other-provider.example/v1\n",
     );
   } finally {
     await server.close();

@@ -42,7 +42,6 @@ test("env planner creates a new .env when the resolved file is absent", async ()
 
     const plan = buildEnvMutationPlan({
       apiKey: getValidatedApiKey(),
-      plannedEnvCleanup: [],
       read: readResult.read,
     });
 
@@ -77,7 +76,6 @@ test("env planner replaces OPENAI_API_KEY in place without disturbing unrelated 
 
     const plan = buildEnvMutationPlan({
       apiKey: getValidatedApiKey(),
-      plannedEnvCleanup: [],
       read: readResult.read,
     });
 
@@ -91,7 +89,7 @@ test("env planner replaces OPENAI_API_KEY in place without disturbing unrelated 
   }
 });
 
-test("env planner clears canonical OPENAI_BASE_URL residue without needing extra env mutations beyond helper ownership", async () => {
+test("env planner preserves canonical OPENAI_BASE_URL residue outside helper ownership", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "canonical-base-url",
   });
@@ -109,21 +107,23 @@ test("env planner clears canonical OPENAI_BASE_URL residue without needing extra
 
     const plan = buildEnvMutationPlan({
       apiKey: getValidatedApiKey(),
-      plannedEnvCleanup: reviewPlanResult.result.plan.plannedEnvCleanup,
       read: reviewPlanResult.result.read,
     });
 
     assert.deepEqual(
       plan.actions.map((action) => `${action.kind}:${action.key}`),
-      ["set:OPENAI_API_KEY", "delete:OPENAI_BASE_URL"],
+      ["set:OPENAI_API_KEY"],
     );
-    assert.equal(plan.nextContents, "OPENAI_API_KEY=gp-phase-four-secret\n");
+    assert.equal(
+      plan.nextContents,
+      "OPENAI_BASE_URL=https://api.gonkagate.com/v1\nOPENAI_API_KEY=gp-phase-four-secret\n",
+    );
   } finally {
     await harness.cleanup();
   }
 });
 
-test("env planner removes non-canonical file-backed OPENAI_BASE_URL while preserving unrelated keys", async () => {
+test("env planner preserves non-canonical OPENAI_BASE_URL while replacing helper-owned key", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "shared-key-conflict",
   });
@@ -147,13 +147,12 @@ test("env planner removes non-canonical file-backed OPENAI_BASE_URL while preser
 
     const plan = buildEnvMutationPlan({
       apiKey: getValidatedApiKey(),
-      plannedEnvCleanup: reviewPlanResult.result.plan.plannedEnvCleanup,
       read: reviewPlanResult.result.read,
     });
 
     assert.equal(
       plan.nextContents,
-      "FOO=1\nOPENAI_API_KEY=gp-phase-four-secret\nBAR=2\n",
+      "FOO=1\nOPENAI_API_KEY=gp-phase-four-secret\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nBAR=2\n",
     );
   } finally {
     await harness.cleanup();

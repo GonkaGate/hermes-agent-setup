@@ -17,7 +17,6 @@ export function renderOnboardSuccess(result: OnboardSuccessResult): string {
     `- model.default = ${result.selectedModelId}`,
     "Applied file changes:",
     ...renderAppliedChanges(result),
-    ...renderAdvisories(result),
     "Next steps:",
     "- Run `hermes` in this resolved context to start using the configured GonkaGate model.",
     "- The live `/v1/models` check confirmed auth and catalog visibility only. It did not verify billing/quota for the first billable request or full Hermes runtime readiness.",
@@ -53,20 +52,6 @@ function renderAppliedChanges(result: OnboardSuccessResult): readonly string[] {
   return lines.length > 0
     ? lines
     : ["- No cleanup beyond the managed GonkaGate settings was required."];
-}
-
-function renderAdvisories(result: OnboardSuccessResult): readonly string[] {
-  if (result.reviewPlan.advisories.length === 0) {
-    return [];
-  }
-
-  return [
-    "Advisories:",
-    ...result.reviewPlan.advisories.map(
-      (advisory) =>
-        `- ${advisory.source === "inherited_process" ? "Shell-owned" : "File-backed"} OPENAI_BASE_URL remains visible as ${advisory.value}`,
-    ),
-  ];
 }
 
 function formatResolvedContext(result: PreflightReport): string {

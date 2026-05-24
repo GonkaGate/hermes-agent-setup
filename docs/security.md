@@ -24,9 +24,8 @@ The helper writes only the minimum GonkaGate-managed surface:
 - `model.default`
 - `OPENAI_API_KEY`
 
-Conflict-only cleanup is limited to the PRD-approved surfaces such as
-`model.api_key`, `model.api`, incompatible `model.api_mode`, and one matching
-provider entry when that scrub stays inside the allowed field set.
+Conflict-only cleanup is limited to current model-owned surfaces:
+`model.api_key`, `model.api`, and incompatible `model.api_mode`.
 
 Write safety rules:
 
@@ -41,14 +40,15 @@ Write safety rules:
 The shipped runtime treats these as active security or correctness surfaces:
 
 - shared `OPENAI_API_KEY` consumers
-- file-backed and inherited-process `OPENAI_BASE_URL`
-- matching `custom_providers` / `providers:` entries that point at the
-  canonical GonkaGate URL
+- current `providers:` entries with competing selectors for the canonical
+  GonkaGate URL
+- legacy `custom_providers` entries that still point at the canonical
+  GonkaGate URL
 - matching `auth.json` credential pools under `credential_pool["custom:*"]`
 
-The helper may scrub one matching provider entry after consolidated review, but
-it does not mutate `auth.json` credential pools in v1. Matching credential
-pools remain a blocking manual-resolution case with Hermes-owned follow-up.
+The helper does not scrub provider registries or mutate `auth.json` credential
+pools in v1. These remain blocking manual-resolution cases with Hermes-owned
+follow-up.
 
 ## Qualification And Verification Limits
 
@@ -73,5 +73,7 @@ The helper does not take ownership of:
 - shell profile mutation
 - arbitrary custom provider management
 - arbitrary custom base URLs
+- legacy endpoint paths such as `OPENAI_BASE_URL`, `LLM_MODEL`, root-level
+  `provider` / `base_url`, and legacy `custom_providers`
 - repository-local `.env` files
 - direct mutation of `auth.json`

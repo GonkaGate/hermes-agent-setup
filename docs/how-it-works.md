@@ -19,20 +19,20 @@ Today the repository ships:
 - Hermes preconditions, path resolution, normalized reads, conflict
   classification, catalog access, model selection, write planning, backups,
   rollback, and success/error UX under `src/`
-- checked-in launch qualification artifacts for the pinned Hermes release
+- checked-in launch qualification artifacts for the latest-only Hermes release
 - docs, contract tests, and mirrored contributor skills
 
 ## Install Flow
 
-1. Check Node, TTY, supported platform, Hermes availability, and managed-write
-   blockers before prompting for anything.
+1. Check Node, TTY, supported platform, Hermes availability, Hermes version
+   floor, and managed-write blockers before prompting for anything.
 2. Resolve the active Hermes config context through `hermes config path`,
    `hermes config env-path`, and optional `--profile <name>`.
 3. Read `config.yaml`, `.env`, `auth.json`, and `cron/jobs.json`, then build a
-   release-pinned normalized Hermes view that includes `${VAR}` expansion and
-   legacy root-level `provider` / `base_url` migration into `model.*`.
-4. Classify shared `OPENAI_API_KEY`, `OPENAI_BASE_URL`, matching
-   `custom_providers` / `providers:`, and matching `auth.json` credential-pool
+   latest-only normalized Hermes view with `${VAR}` expansion for current
+   supported surfaces.
+4. Classify shared `OPENAI_API_KEY`, current `providers:` conflicts, legacy
+   `custom_providers` residue, and matching `auth.json` credential-pool
    conflicts before any secret prompt or write plan is built.
 5. Prompt for a hidden GonkaGate API key and validate the `gp-...` shape
    before any network call.
@@ -42,8 +42,8 @@ Today the repository ships:
 7. Pick one qualified live model. Interactive mode keeps the model picker
    visible; single-option flows may auto-select that one qualified model.
 8. Build one deterministic pre-write review that includes planned config
-   changes, planned `.env` cleanup, takeover confirmations, and matching
-   provider scrub actions.
+   changes and takeover confirmations. Legacy endpoint paths are not cleaned or
+   migrated by the helper.
 9. Create same-run backups, write `config.yaml` first, write `.env` second,
    and roll back `config.yaml` by pre-run state if the later `.env` write
    fails.
@@ -56,15 +56,17 @@ The helper intentionally stays narrow:
 
 - it owns the GonkaGate onboarding path, not general Hermes bootstrap
 - it manages only `model.provider`, `model.base_url`, `model.default`, and
-  `OPENAI_API_KEY`, plus conflict-only cleanup allowed by the PRD
+  `OPENAI_API_KEY`, plus current `model.api_key`, `model.api`, and
+  incompatible `model.api_mode` cleanup when those compete with the managed
+  main endpoint
 - it does not mutate `auth.json` credential pools
 - it does not mutate shell profiles
 - it does not accept arbitrary custom base URLs
 
 Matching custom credential pools remain a blocking manual-resolution case in
-v1. Matching provider entries are scrubbed only when one on-disk entry can be
-cleaned within the allowed field set and the user confirms the consolidated
-review.
+v1. Legacy `custom_providers` entries and current `providers:` entries with
+competing selectors are also blocking manual-resolution cases; the helper does
+not scrub provider registries.
 
 ## Qualification And Verification
 
@@ -74,8 +76,22 @@ The runtime is curated-model-first:
   `docs/launch-qualification/hermes-agent-setup/` are eligible
 - the helper still requires those models to remain visible in the live
   `/v1/models` catalog before offering them
+- live catalog entries without checked-in qualification artifacts are ignored
+  rather than exposed as ad hoc model choices
 - `GET /v1/models` is an auth plus live-catalog signal, not proof of prepaid
   balance or end-to-end readiness for the first billable request
+
+Current proof coverage for the catalog boundary:
+
+- `test/catalog-client.test.ts` verifies the canonical
+  `https://api.gonkagate.com/v1/models` URL, Bearer auth, malformed payload
+  rejection, terminal auth failures, retryable 5xx and 429 behavior, quota
+  shaped failures, and retry exhaustion.
+- `test/qualified-models.test.ts` verifies the intersection between the live
+  catalog and checked-in qualification artifacts, including the rule that
+  live-only unqualified entries are not selectable.
+- `test/e2e-onboard.test.ts` verifies catalog failures abort before Hermes
+  files are written.
 
 Use the maintainer scripts under `scripts/launch-qualification/` to prepare
 clean-home qualification runs, build the checked-in artifact, and validate the

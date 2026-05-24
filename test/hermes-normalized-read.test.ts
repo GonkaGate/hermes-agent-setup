@@ -56,7 +56,7 @@ test("normalized read fails safely on malformed YAML", async () => {
   }
 });
 
-test("normalized read migrates legacy root provider/base_url into model.*", async () => {
+test("normalized read ignores legacy root provider/base_url for the latest-only model view", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "legacy-root-config",
   });
@@ -76,9 +76,9 @@ test("normalized read migrates legacy root provider/base_url into model.*", asyn
       api: "",
       apiKey: "",
       apiMode: "",
-      baseUrl: "https://legacy-endpoint.example/v1",
+      baseUrl: "",
       defaultModel: "qwen3-32b",
-      provider: "custom",
+      provider: "",
     });
   } finally {
     await harness.cleanup();

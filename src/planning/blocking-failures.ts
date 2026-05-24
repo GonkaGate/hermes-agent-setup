@@ -4,7 +4,6 @@ import {
 } from "../domain/runtime.js";
 import type {
   AuthPoolConflict,
-  OpenAiBaseUrlConflict,
   PreWriteReviewBlockingFinding,
   SharedOpenAiKeyConflict,
 } from "../domain/conflicts.js";
@@ -29,14 +28,13 @@ export function createPreWriteBlockingFailure(
           matchingEntries: blockingFinding.matchingEntries.map(
             (entry) => entry.entry.name,
           ),
+          reason: blockingFinding.reason,
         },
         guidance:
-          "Remove the duplicate GonkaGate provider entries from Hermes config.yaml, then rerun the helper.",
+          "Remove or repair the matching GonkaGate custom-provider entries in Hermes config.yaml, then rerun the helper.",
         message:
-          "Multiple on-disk custom-provider entries still target the canonical GonkaGate URL.",
+          "A Hermes custom-provider entry still targets the canonical GonkaGate URL outside the helper-managed model config.",
       });
-    case "openai_base_url":
-      return createOpenAiBaseUrlFailure(blockingFinding);
     case "shared_openai_key":
       return createSharedKeyFailure(blockingFinding);
     default:
@@ -57,21 +55,6 @@ function createAuthPoolFailure(
       "Resolve the matching Hermes auth pool manually with Hermes-owned auth commands such as `hermes auth list` and `hermes auth remove`, then rerun the helper.",
     message:
       "A matching Hermes custom credential pool still contains competing credentials for the canonical GonkaGate URL.",
-  });
-}
-
-function createOpenAiBaseUrlFailure(
-  conflict: OpenAiBaseUrlConflict,
-): OnboardFailure {
-  return createOnboardFailure("inherited_base_url_conflict", {
-    details: {
-      source: conflict.source,
-      value: conflict.value,
-    },
-    guidance:
-      "Unset OPENAI_BASE_URL in the current shell or start a fresh shell session, then rerun the helper.",
-    message:
-      "A non-canonical inherited OPENAI_BASE_URL is still active in the current shell session.",
   });
 }
 
