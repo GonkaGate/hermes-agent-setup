@@ -73,7 +73,7 @@ export async function runPreflightChecks(
         reason: hermesVersionCheck.reason,
         versionOutput: hermesPresence.stdout,
       },
-      guidance: `Upgrade Hermes Agent to ${CONTRACT_METADATA.minimumHermesReleaseTag} / ${CONTRACT_METADATA.minimumHermesVersion} or newer, then rerun ${CONTRACT_METADATA.publicEntrypoint}.`,
+      guidance: `Upgrade Hermes Agent to ${CONTRACT_METADATA.minimumHermesReleaseTag} / ${CONTRACT_METADATA.minimumHermesVersion} or newer, then rerun ${CONTRACT_METADATA.publicEntrypoint}. Run \`hermes update\` first; for pip installs, use \`pip install --upgrade hermes-agent\` or \`uv pip install --upgrade hermes-agent\`.`,
       message:
         hermesVersionCheck.reason === "unparseable"
           ? "Hermes returned a version string that the helper cannot validate against the supported latest-only contract."
