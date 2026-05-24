@@ -1,19 +1,19 @@
 ---
-modelId: moonshotai/kimi-k2.6
-qualifiedOn: 2026-04-29
-hermesReleaseTag: v2026.4.13
-hermesCommit: launch-qualification-recorded-internal
+modelId: qwen/qwen3-235b-a22b-instruct-2507-fp8
+qualifiedOn: 2026-05-24
+hermesReleaseTag: v2026.5.16
+hermesCommit: a91a57fa5a13d516c38b07a141a9ce8a3daabeb0
 osCoverage:
   - linux
   - macos
   - wsl2
-recommended: true
+recommended: false
 ---
 
-# `moonshotai/kimi-k2.6`
+# `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 This record defines the checked-in allowlist entry consumed by the shipped
-runtime for the pinned Hermes release.
+runtime for the latest-only Hermes release contract.
 
 ## Sanitized Config Shape
 
@@ -21,7 +21,7 @@ runtime for the pinned Hermes release.
 model:
   provider: custom
   base_url: https://api.gonkagate.com/v1
-  default: moonshotai/kimi-k2.6
+  default: qwen/qwen3-235b-a22b-instruct-2507-fp8
 ```
 
 ## Sanitized Env Shape
@@ -38,9 +38,9 @@ qualification workflow and summarized by this checked-in allowlist record.
 ## Streaming Turn
 
 Saved streaming qualification evidence is tracked in the same release
-qualification workflow for the pinned Hermes release.
+qualification workflow for the latest-only Hermes release.
 
 ## Harmless Tool-Use Turn
 
 Saved harmless tool-use qualification evidence is tracked in the same release
-qualification workflow for the pinned Hermes release.
+qualification workflow for the latest-only Hermes release.

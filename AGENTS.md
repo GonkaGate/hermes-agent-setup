@@ -12,6 +12,8 @@ Current honest state:
 - the end-to-end public onboarding runtime is implemented
 - the PRD is present under `docs/specs/hermes-agent-setup-prd/spec.md`
 - CI, packaging, docs, contract tests, and mirrored skills are wired
+- the helper targets latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or
+  newer, and fails older Hermes versions during preflight
 - the current CLI resolves the active Hermes context, classifies conflicts,
   prompts for a hidden GonkaGate key, fetches the live catalog, intersects it
   with checked-in launch qualification artifacts, writes the managed Hermes
@@ -36,7 +38,12 @@ Product invariants:
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
 - curated model selection is product-owned
+- latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or newer is the supported
+  runtime floor
 - shell profile mutation is out of scope
+- legacy endpoint paths such as `OPENAI_BASE_URL`, `LLM_MODEL`, root-level
+  `provider` / `base_url`, and legacy `custom_providers` are out of scope for
+  the public flow
 - arbitrary custom base URLs are out of scope for the public flow
 - v1 launch scope is Linux, macOS, and WSL2 only
 - public onboarding inherits current GonkaGate Terms availability boundaries;

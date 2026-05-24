@@ -16,9 +16,10 @@ test("required docs files exist", () => {
     "docs/how-it-works.md",
     "docs/security.md",
     "docs/launch-qualification/hermes-agent-setup/README.md",
-    "docs/launch-qualification/hermes-agent-setup/v2026.4.13/moonshotai-kimi-k2-6.md",
-    "docs/launch-qualification/hermes-agent-setup/v2026.4.13/qwen-qwen3-235b-a22b-instruct-2507-fp8.md",
+    "docs/launch-qualification/hermes-agent-setup/v2026.5.16/moonshotai-kimi-k2-6.md",
+    "docs/launch-qualification/hermes-agent-setup/v2026.5.16/qwen-qwen3-235b-a22b-instruct-2507-fp8.md",
     "docs/release-readiness/hermes-agent-setup-v1.md",
+    "docs/specs/hermes-latest-contract-adaptation/spec.md",
     "docs/specs/hermes-agent-setup-prd/spec.md",
   ];
 
@@ -40,12 +41,18 @@ test("README captures the shipped helper contract", () => {
   assert.match(readme, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(readme, /~\/\.hermes\/config\.yaml/);
   assert.match(readme, /~\/\.hermes\/\.env/);
+  assert.match(readme, /v2026\.5\.16/);
+  assert.match(readme, /OPENAI_BASE_URL/);
   assert.match(readme, /GET \/v1\/models/);
   assert.match(readme, /launch qualification artifacts/i);
   assert.match(readme, /moonshotai\/kimi-k2\.6/);
   assert.match(readme, /qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
   assert.match(readme, /United States of America|U\.S\. territories/i);
   assert.match(readme, /docs\/specs\/hermes-agent-setup-prd\/spec\.md/);
+  assert.match(
+    readme,
+    /docs\/specs\/hermes-latest-contract-adaptation\/spec\.md/,
+  );
   assert.doesNotMatch(readme, /Phase 1 preflight/i);
   assert.doesNotMatch(readme, /not shipped yet/i);
 });
@@ -55,6 +62,7 @@ test("AGENTS documents the shipped runtime truth and release workflow", () => {
 
   assert.match(agents, /end-to-end public onboarding runtime is implemented/i);
   assert.match(agents, /launch qualification artifacts exist/i);
+  assert.match(agents, /v2026\.5\.16/);
   assert.match(agents, /provider:\s*custom/);
   assert.match(agents, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(agents, /Linux, macOS, and WSL2/i);
@@ -91,18 +99,25 @@ test("implementation docs capture the shipped runtime, qualification, and securi
   assert.match(howItWorks, /runtime is implemented and shipped/i);
   assert.match(howItWorks, /auth\.json/i);
   assert.match(howItWorks, /custom_providers|providers:/i);
+  assert.match(howItWorks, /does\s+not scrub provider registries/i);
+  assert.match(
+    howItWorks,
+    /Legacy endpoint paths are not cleaned or\s+migrated/i,
+  );
   assert.match(
     howItWorks,
     /write `?config\.yaml`? first, write `?\.env`? second/i,
   );
   assert.match(howItWorks, /launch qualification artifacts/i);
   assert.match(howItWorks, /GET \/v1\/models/i);
+  assert.match(howItWorks, /live-only unqualified entries are not selectable/i);
   assert.doesNotMatch(howItWorks, /not implemented yet/i);
 
   assert.match(security, /hidden interactive\s+prompt/i);
   assert.match(security, /never write the key to `config\.yaml`/i);
   assert.match(security, /owner-only `?\.env`? permissions/i);
-  assert.match(security, /does not mutate `auth\.json` credential pools/i);
+  assert.match(security, /mutate `auth\.json` credential\s+pools/i);
+  assert.match(security, /does not scrub provider registries/i);
   assert.match(security, /docs\/launch-qualification\/hermes-agent-setup/i);
   assert.doesNotMatch(security, /Phase 1 preflight/i);
 });
@@ -115,6 +130,7 @@ test("docs index and release readiness label current versus historical surfaces 
   );
 
   assert.match(docsIndex, /Current Contract Documents/i);
+  assert.match(docsIndex, /Hermes Latest Contract Adaptation/i);
   assert.match(docsIndex, /Qualification And Release/i);
   assert.match(docsIndex, /Historical Context/i);
   assert.match(docsIndex, /historical execution record/i);

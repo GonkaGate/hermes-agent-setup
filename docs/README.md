@@ -20,6 +20,7 @@ This repository does not currently contain:
 ## Current Contract Documents
 
 - [Hermes Agent Setup PRD](./specs/hermes-agent-setup-prd/spec.md)
+- [Hermes Latest Contract Adaptation](./specs/hermes-latest-contract-adaptation/spec.md)
 - [How It Works](./how-it-works.md)
 - [Security](./security.md)
 
@@ -36,7 +37,8 @@ This repository does not currently contain:
 
 ## Notes
 
-- the PRD remains the main product contract
+- the PRD remains the historical v1 product contract; the latest-contract
+  adaptation records the current Hermes `v2026.5.16` runtime update
 - launch qualification artifacts are part of the shipped model-selection
   contract
 - historical documents must be labeled explicitly so scaffold-era planning

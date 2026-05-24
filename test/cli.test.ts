@@ -47,7 +47,7 @@ test("CLI help renders the shipped helper contract surface", () => {
   assert.match(result.stdout, /The onboarding runtime is implemented/i);
   assert.match(
     result.stdout,
-    /docs\/launch-qualification\/hermes-agent-setup\/v2026\.4\.13/,
+    /docs\/launch-qualification\/hermes-agent-setup\/v2026\.5\.16/,
   );
   assert.match(result.stdout, /https:\/\/api\.gonkagate\.com\/v1/);
 });

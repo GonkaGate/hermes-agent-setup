@@ -1,11 +1,9 @@
-import type { PlannedEnvCleanup } from "../domain/conflicts.js";
 import type { EnvMutationAction, EnvMutationPlan } from "../domain/writes.js";
 import type { NormalizedHermesRead } from "../hermes/normalized-read.js";
 import type { ValidatedApiKey } from "../validation/api-key.js";
 
 export interface BuildEnvMutationPlanInput {
   apiKey: ValidatedApiKey;
-  plannedEnvCleanup: readonly PlannedEnvCleanup[];
   read: NormalizedHermesRead;
 }
 
@@ -34,18 +32,6 @@ export function buildEnvMutationPlan(
 
   if (!orderedKeys.includes("OPENAI_API_KEY")) {
     orderedKeys.push("OPENAI_API_KEY");
-  }
-
-  for (const cleanup of input.plannedEnvCleanup) {
-    if (!(cleanup.key in currentValues)) {
-      continue;
-    }
-
-    delete currentValues[cleanup.key];
-    actions.push({
-      key: cleanup.key,
-      kind: "delete",
-    });
   }
 
   const nextOrderedKeys = orderedKeys.filter((key) => key in currentValues);

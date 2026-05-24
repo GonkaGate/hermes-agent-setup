@@ -293,7 +293,7 @@ import ${JSON.stringify(fakeHermesFixturePath)};
           options.versionExitCode ?? 0,
         ),
         GONKAGATE_FAKE_HERMES_VERSION_OUTPUT:
-          options.versionOutput ?? "hermes-agent 0.9.0",
+          options.versionOutput ?? "hermes-agent 0.14.0",
         GONKAGATE_FAKE_HERMES_VERSION_STDERR: options.versionStderr ?? "",
         ...(options.configPathOutput === undefined
           ? {}

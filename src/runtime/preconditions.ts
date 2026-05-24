@@ -63,6 +63,24 @@ export async function runPreflightChecks(
     });
   }
 
+  const hermesVersionCheck = validateHermesVersion(hermesPresence.stdout);
+
+  if (!hermesVersionCheck.ok) {
+    return createOnboardFailure("unsupported_hermes_version", {
+      details: {
+        minimumReleaseTag: CONTRACT_METADATA.minimumHermesReleaseTag,
+        minimumVersion: CONTRACT_METADATA.minimumHermesVersion,
+        reason: hermesVersionCheck.reason,
+        versionOutput: hermesPresence.stdout,
+      },
+      guidance: `Upgrade Hermes Agent to ${CONTRACT_METADATA.minimumHermesReleaseTag} / ${CONTRACT_METADATA.minimumHermesVersion} or newer, then rerun ${CONTRACT_METADATA.publicEntrypoint}.`,
+      message:
+        hermesVersionCheck.reason === "unparseable"
+          ? "Hermes returned a version string that the helper cannot validate against the supported latest-only contract."
+          : `Hermes Agent ${hermesVersionCheck.version} is below the supported floor ${CONTRACT_METADATA.minimumHermesVersion} (${CONTRACT_METADATA.minimumHermesReleaseTag}).`,
+    });
+  }
+
   const contextResult = await resolveHermesContext(options, dependencies);
 
   if (!contextResult.ok) {
@@ -106,6 +124,7 @@ export async function runPreflightChecks(
   const preflight: PreflightReport = {
     ...contextResult.context,
     hermesCommand: "hermes",
+    hermesVersion: hermesVersionCheck.version,
     nodeVersion: dependencies.runtime.nodeVersion,
     platform: supportedPlatform.platform,
   };
@@ -116,6 +135,123 @@ export async function runPreflightChecks(
     preflight,
     status: "success-preflight",
   };
+}
+
+type HermesVersionCheckResult =
+  | {
+      ok: true;
+      version: string;
+    }
+  | {
+      ok: false;
+      reason: "below_minimum" | "unparseable";
+      version?: string;
+    };
+
+function validateHermesVersion(stdout: string): HermesVersionCheckResult {
+  const parsedSemver = parseHermesSemver(stdout);
+
+  if (parsedSemver !== undefined) {
+    return semver.gte(parsedSemver, CONTRACT_METADATA.minimumHermesVersion)
+      ? {
+          ok: true,
+          version: parsedSemver,
+        }
+      : {
+          ok: false,
+          reason: "below_minimum",
+          version: parsedSemver,
+        };
+  }
+
+  const parsedReleaseTag = parseHermesReleaseTag(stdout);
+
+  if (parsedReleaseTag !== undefined) {
+    return compareReleaseTags(
+      parsedReleaseTag,
+      CONTRACT_METADATA.minimumHermesReleaseTag,
+    ) >= 0
+      ? {
+          ok: true,
+          version: parsedReleaseTag,
+        }
+      : {
+          ok: false,
+          reason: "below_minimum",
+          version: parsedReleaseTag,
+        };
+  }
+
+  return {
+    ok: false,
+    reason: "unparseable",
+  };
+}
+
+function parseHermesSemver(stdout: string): string | undefined {
+  const versionMatches = stdout.matchAll(
+    /(?:^|[\s(])v?(\d+\.\d+\.\d+)(?=$|[\s),])/gu,
+  );
+
+  for (const match of versionMatches) {
+    const candidate = match[1];
+
+    if (candidate === undefined) {
+      continue;
+    }
+
+    const [majorText] = candidate.split(".");
+    const major = Number(majorText);
+
+    if (!Number.isFinite(major) || major >= 1000) {
+      continue;
+    }
+
+    const cleanedVersion = semver.clean(candidate);
+
+    if (cleanedVersion !== null) {
+      return cleanedVersion;
+    }
+  }
+
+  return undefined;
+}
+
+function parseHermesReleaseTag(stdout: string): string | undefined {
+  const match = stdout.match(
+    /(?:^|[\s(])v?(20\d{2})\.(\d{1,2})\.(\d{1,2})(?=$|[\s),])/u,
+  );
+
+  if (match === null) {
+    return undefined;
+  }
+
+  return `v${match[1]}.${Number(match[2])}.${Number(match[3])}`;
+}
+
+function compareReleaseTags(left: string, right: string): number {
+  const leftParts = parseReleaseTagParts(left);
+  const rightParts = parseReleaseTagParts(right);
+
+  for (let index = 0; index < leftParts.length; index += 1) {
+    const difference = leftParts[index] - rightParts[index];
+
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+
+  return 0;
+}
+
+function parseReleaseTagParts(tag: string): readonly [number, number, number] {
+  const match = tag.match(/^v(20\d{2})\.(\d{1,2})\.(\d{1,2})$/u);
+
+  if (match === null) {
+    return [0, 0, 0];
+  }
+
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
 async function detectManagedInstall(

@@ -32,6 +32,7 @@ test("supported preflight returns a success report without writing files", async
     }
 
     assert.match(result.message, /Preflight checks passed/i);
+    assert.equal(result.preflight.hermesVersion, "0.14.0");
     assert.equal(result.preflight.platform, "linux");
     assert.equal(
       result.preflight.configPath,
@@ -41,6 +42,116 @@ test("supported preflight returns a success report without writing files", async
       result.preflight.envPath,
       resolve(harness.hermesHomeDir, ".env"),
     );
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("Hermes versions below the latest-only floor abort before path resolution", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionOutput: "hermes-agent 0.9.0",
+    });
+
+    const result = await runPreflightChecks(
+      {},
+      harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+    );
+
+    assert.equal(result.status, "failure");
+
+    if (result.status !== "failure") {
+      return;
+    }
+
+    assert.equal(result.code, "unsupported_hermes_version");
+    assert.match(result.message, /below the supported floor/i);
+    assert.deepEqual(await harness.readFakeHermesInvocations(), [
+      ["--version"],
+    ]);
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("Hermes release-tag version output is accepted at the latest-only floor", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionOutput: "v2026.5.16",
+    });
+
+    const result = await runPreflightChecks(
+      {},
+      harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+    );
+
+    assert.equal(result.status, "success-preflight");
+
+    if (result.status !== "success-preflight") {
+      return;
+    }
+
+    assert.equal(result.preflight.hermesVersion, "v2026.5.16");
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("unparseable Hermes version output aborts before path resolution", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionOutput: "Hermes Agent Foundation Release",
+    });
+
+    const result = await runPreflightChecks(
+      {},
+      harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+    );
+
+    assert.equal(result.status, "failure");
+
+    if (result.status !== "failure") {
+      return;
+    }
+
+    assert.equal(result.code, "unsupported_hermes_version");
+    assert.match(result.message, /cannot validate/i);
+    assert.deepEqual(await harness.readFakeHermesInvocations(), [
+      ["--version"],
+    ]);
   } finally {
     await harness.cleanup();
   }

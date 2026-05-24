@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import test from "node:test";
 import { classifyMatchingProviders } from "../src/hermes/conflicts/matching-providers.js";
 import { createHermesIntegrationHarness } from "./helpers/harness.js";
@@ -30,7 +32,7 @@ test("matching provider classifier returns none when no named custom providers t
   }
 });
 
-test("matching provider classifier marks a single providers: entry with conflicting selectors as scrubbable", async () => {
+test("matching provider classifier blocks a providers: entry with competing selectors", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "providers-dict-match",
   });
@@ -48,20 +50,16 @@ test("matching provider classifier marks a single providers: entry with conflict
 
     const conflict = classifyMatchingProviders(readResult.read);
 
-    assert.equal(conflict.status, "scrubbable");
+    assert.equal(conflict.status, "blocking");
 
-    if (conflict.status !== "scrubbable") {
+    if (conflict.status !== "blocking") {
       return;
     }
 
     const [match] = conflict.matchingEntries;
 
+    assert.equal(conflict.reason, "competing_provider_selectors");
     assert.equal(match?.entry.sourceShape, "providers");
-    assert.deepEqual([...(match?.scrubFields ?? [])].sort(), [
-      "api_key",
-      "api_mode",
-      "transport",
-    ]);
   } finally {
     await harness.cleanup();
   }
@@ -92,6 +90,46 @@ test("matching provider classifier keeps a single canonical entry without compet
     }
 
     assert.equal(conflict.matchingEntries[0]?.entry.name, "gonkagate");
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("matching provider classifier blocks a legacy custom_providers entry", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const configPath = resolve(harness.hermesHomeDir, "config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      "custom_providers:\n  gonkagate:\n    base_url: https://api.gonkagate.com/v1\n",
+      "utf8",
+    );
+    await harness.installFakeHermesOnPath();
+
+    const readResult = await loadNormalizedReadForFixture(harness);
+
+    assert.equal(readResult.ok, true);
+
+    if (!readResult.ok) {
+      return;
+    }
+
+    const conflict = classifyMatchingProviders(readResult.read);
+
+    assert.equal(conflict.status, "blocking");
+
+    if (conflict.status !== "blocking") {
+      return;
+    }
+
+    assert.equal(conflict.reason, "legacy_custom_provider_entry");
+    assert.equal(
+      conflict.matchingEntries[0]?.entry.sourceShape,
+      "custom_providers",
+    );
   } finally {
     await harness.cleanup();
   }

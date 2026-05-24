@@ -14,6 +14,7 @@ export type OnboardFailureCode =
   | "missing_tty"
   | "unsupported_platform"
   | "hermes_not_found"
+  | "unsupported_hermes_version"
   | "managed_install"
   | "write_blocked"
   | "path_resolution_failed"
@@ -25,8 +26,6 @@ export type OnboardFailureCode =
   | "model_auth_conflict"
   | "provider_conflict"
   | "auth_pool_conflict"
-  | "inherited_base_url_conflict"
-  | "file_backed_base_url_conflict"
   | "api_key_invalid"
   | "qualified_models_unavailable"
   | "catalog_auth_failed"
@@ -64,6 +63,7 @@ export interface ResolvedHermesContext {
 
 export interface PreflightReport extends ResolvedHermesContext {
   hermesCommand: "hermes";
+  hermesVersion: string;
   nodeVersion: string;
   platform: (typeof CONTRACT_METADATA.supportedPlatforms)[number];
 }
@@ -109,6 +109,7 @@ export const ONBOARD_FAILURE_FAMILY_BY_CODE = {
   missing_tty: "runtime",
   unsupported_platform: "runtime",
   hermes_not_found: "runtime",
+  unsupported_hermes_version: "runtime",
   managed_install: "runtime",
   write_blocked: "runtime",
   path_resolution_failed: "runtime",
@@ -120,8 +121,6 @@ export const ONBOARD_FAILURE_FAMILY_BY_CODE = {
   model_auth_conflict: "conflict",
   provider_conflict: "conflict",
   auth_pool_conflict: "conflict",
-  inherited_base_url_conflict: "conflict",
-  file_backed_base_url_conflict: "conflict",
   api_key_invalid: "catalog",
   qualified_models_unavailable: "catalog",
   catalog_auth_failed: "catalog",

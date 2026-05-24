@@ -10,7 +10,7 @@ if (args.length === 1 && args[0] === "--version") {
   respond({
     exitCode: Number(env.GONKAGATE_FAKE_HERMES_VERSION_EXIT_CODE ?? "0"),
     stderr: env.GONKAGATE_FAKE_HERMES_VERSION_STDERR ?? "",
-    stdout: env.GONKAGATE_FAKE_HERMES_VERSION_OUTPUT ?? "hermes-agent 0.9.0",
+    stdout: env.GONKAGATE_FAKE_HERMES_VERSION_OUTPUT ?? "hermes-agent 0.14.0",
   });
 }
 

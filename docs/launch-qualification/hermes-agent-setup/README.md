@@ -8,8 +8,8 @@ Runtime policy:
 - only models with a checked-in artifact here may be considered allowlisted
 - the helper intersects those artifacts with the live GonkaGate `/v1/models`
   catalog before presenting any model choice
-- artifacts are pinned to the qualified Hermes release contract, currently
-  `v2026.4.13`
+- artifacts are pinned to the latest-only qualified Hermes release contract,
+  currently `v2026.5.16`
 - maintainer tooling for preparing sessions, building artifacts, and validating
   this tree lives under `scripts/launch-qualification/`
 

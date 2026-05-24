@@ -35,6 +35,7 @@ OpenAI-compatible endpoint through `provider: custom` and
 You should also have:
 
 - `hermes-agent` available on your machine
+- Hermes Agent `v2026.5.16` / `v0.14.0` or newer
 - a GonkaGate API key
 - an interactive terminal
 - Linux, macOS, or WSL2
@@ -84,6 +85,9 @@ When setup succeeds, the helper writes only the GonkaGate-managed surface:
 The shipped helper intentionally stays narrow:
 
 - it does not replace `hermes setup`
+- it does not support legacy endpoint paths such as `OPENAI_BASE_URL`,
+  `LLM_MODEL`, root-level `provider` / `base_url`, or legacy
+  `custom_providers`
 - it does not accept arbitrary custom base URLs
 - it does not mutate shell profiles
 - it does not mutate `auth.json` credential pools
@@ -103,3 +107,4 @@ If you need general Hermes setup help or deeper product context first, start at
 - [How It Works](./docs/how-it-works.md)
 - [Security](./docs/security.md)
 - [Product Spec](./docs/specs/hermes-agent-setup-prd/spec.md)
+- [Latest Hermes Contract Adaptation](./docs/specs/hermes-latest-contract-adaptation/spec.md)

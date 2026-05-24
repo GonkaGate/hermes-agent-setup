@@ -47,7 +47,6 @@ export function buildPhaseFourWritePlan(selection: PhaseThreeSelectionReady):
 
   const envPlan = buildEnvMutationPlan({
     apiKey: selection.apiKey,
-    plannedEnvCleanup: selection.reviewPlan.plan.plannedEnvCleanup,
     read: selection.reviewPlan.read,
   });
   const review = createPhaseFourReview({

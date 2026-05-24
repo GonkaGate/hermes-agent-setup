@@ -145,7 +145,7 @@ test("config planner leaves legacy root provider/base_url keys untouched while w
   }
 });
 
-test("config planner scrubs only the allowed fields from one matching providers: entry", async () => {
+test("config planner leaves provider registry entries untouched", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "providers-dict-match",
   });
@@ -184,6 +184,9 @@ test("config planner scrubs only the allowed fields from one matching providers:
 
     assert.deepEqual(providers.gonkagate, {
       api: "https://api.gonkagate.com/v1",
+      api_key: "inline-provider-key",
+      api_mode: "codex_responses",
+      transport: "responses",
     });
   } finally {
     await harness.cleanup();

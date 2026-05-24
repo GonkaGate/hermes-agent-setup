@@ -1,7 +1,7 @@
 ---
 modelId: beta/model-b
 qualifiedOn: 2026-04-15
-hermesReleaseTag: v2026.4.13
+hermesReleaseTag: v2026.5.16
 hermesCommit: abcdef1234567890
 osCoverage:
   - linux

@@ -7,9 +7,6 @@ model:
 providers:
   gonkagate:
     api: https://api.gonkagate.com/v1
-    api_key: inline-provider-key
-    transport: responses
-    api_mode: codex_responses
 auxiliary:
   vision:
     provider: openrouter

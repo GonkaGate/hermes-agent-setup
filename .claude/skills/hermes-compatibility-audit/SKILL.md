@@ -15,10 +15,11 @@ This is a read-only compatibility gate. The job is to compare official
 upstream Hermes behavior against the assumptions encoded in this repository and
 return a clear verdict, not to design or apply a migration.
 
-Treat the repository's current PRD baseline as a repository fact, not as
-current upstream truth. Today the PRD says its upstream verification baseline
-was `hermes-agent` `v2026.4.13` / `v0.9.0`; the audit must still verify
-whether latest stable upstream remains compatible with that plan.
+Treat the repository's current runtime baseline as a repository fact, not as
+current upstream truth. Today the shipped helper targets latest-only
+`hermes-agent` `v2026.5.16` / `v0.14.0` or newer; the historical PRD baseline
+was `v2026.4.13` / `v0.9.0`, but that legacy baseline is no longer the
+supported public runtime contract.
 
 ## Scope
 
@@ -31,9 +32,10 @@ Cover the repository's current and planned Hermes-facing contract, especially:
   `model.default`, `model.api_key`, `model.api`, and `model.api_mode`
 - model and provider selection assumptions around `hermes model`,
   `provider:model` syntax, curated model choice, and custom provider behavior
-- auth and secret-handling assumptions around `OPENAI_API_KEY`,
-  `OPENAI_BASE_URL`, `auth.json`, credential pools, and the repository's
-  decision to keep secrets in `~/.hermes/.env` rather than `config.yaml`
+- auth and secret-handling assumptions around `OPENAI_API_KEY`, unsupported
+  legacy endpoint env such as `OPENAI_BASE_URL`, `auth.json`, credential
+  pools, and the repository's decision to keep secrets in `~/.hermes/.env`
+  rather than `config.yaml`
 - workflow and CLI assumptions documented by this repository, such as
   `hermes model`, `hermes config set`, `hermes config path`,
   `hermes config env-path`, `hermes setup`, `hermes doctor`, and profile
@@ -172,9 +174,9 @@ For the target stable release, gather evidence for:
   `model.default`, `model.api_key`, `model.api`, and `model.api_mode`
 - whether current Hermes guidance still routes secrets to `.env` and non-secret
   config to `config.yaml`
-- whether `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `auth.json`, credential pools,
-  or `cron/jobs.json` remain active compatibility or conflict surfaces in the
-  stable release
+- whether unsupported legacy endpoint env such as `OPENAI_BASE_URL`,
+  `OPENAI_API_KEY`, `auth.json`, credential pools, or `cron/jobs.json` remain
+  active upstream surfaces that could affect the latest-only helper contract
 - whether managed installs or blocked-write modes remain relevant to a local
   mutation helper
 - whether Hermes added or removed CLI surfaces relevant to this repository's

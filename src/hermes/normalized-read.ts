@@ -230,9 +230,10 @@ export async function loadNormalizedHermesRead(
     };
   }
 
-  const normalizedRoot = migrateLegacyModelFields(
-    expandConfigValue(rawRoot, mergedRuntimeVisibleEnv),
-  );
+  const normalizedRoot = expandConfigValue(
+    rawRoot,
+    mergedRuntimeVisibleEnv,
+  ) as Record<string, unknown>;
 
   return {
     ok: true,
@@ -324,32 +325,6 @@ function expandConfigValue(
       expandConfigValue(nestedValue, env),
     ]),
   );
-}
-
-function migrateLegacyModelFields(root: unknown): Record<string, unknown> {
-  const safeRoot = isRecord(root) ? { ...root } : {};
-  const modelValue = safeRoot.model;
-  const migratedModel = isRecord(modelValue) ? { ...modelValue } : {};
-  const legacyProvider = normalizeStringValue(safeRoot.provider);
-  const legacyBaseUrl = normalizeStringValue(safeRoot.base_url);
-
-  if (
-    normalizeStringValue(migratedModel.provider).length === 0 &&
-    legacyProvider.length > 0
-  ) {
-    migratedModel.provider = legacyProvider;
-  }
-
-  if (
-    normalizeStringValue(migratedModel.base_url).length === 0 &&
-    legacyBaseUrl.length > 0
-  ) {
-    migratedModel.base_url = legacyBaseUrl;
-  }
-
-  safeRoot.model = migratedModel;
-
-  return safeRoot;
 }
 
 function normalizeModel(
