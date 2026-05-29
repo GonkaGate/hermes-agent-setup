@@ -1,6 +1,6 @@
 {
   "name": "@gonkagate/hermes-agent-setup",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "GonkaGate onboarding helper for configuring Hermes Agent.",
   "homepage": "https://github.com/GonkaGate/hermes-agent-setup#readme",
   "bugs": {
