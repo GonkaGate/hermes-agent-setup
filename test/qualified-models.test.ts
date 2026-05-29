@@ -175,10 +175,11 @@ test("unqualified live catalog entries are not exposed as selectable models", as
   );
 });
 
-test("checked-in Kimi artifact matches the live catalog model id casing", async () => {
+test("checked-in launch artifacts match the live catalog model id casing", async () => {
   const result = await loadQualifiedLiveModels(
     {
       modelIds: [
+        "minimaxai/minimax-m2.7",
         "moonshotai/kimi-k2.6",
         "qwen/qwen3-235b-a22b-instruct-2507-fp8",
       ],
@@ -197,7 +198,17 @@ test("checked-in Kimi artifact matches the live catalog model id casing", async 
 
   assert.deepEqual(
     result.result.qualifiedLiveModels.map((model) => model.modelId),
-    ["moonshotai/kimi-k2.6", "qwen/qwen3-235b-a22b-instruct-2507-fp8"],
+    [
+      "minimaxai/minimax-m2.7",
+      "moonshotai/kimi-k2.6",
+      "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+    ],
+  );
+  assert.equal(
+    result.result.qualifiedLiveModels.find(
+      (model) => model.modelId === "minimaxai/minimax-m2.7",
+    )?.recommended,
+    false,
   );
   assert.equal(
     result.result.qualifiedLiveModels.find(
