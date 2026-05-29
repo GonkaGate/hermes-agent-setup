@@ -15,6 +15,7 @@ for the v1 Hermes contract:
 The current checked-in allowlist includes these artifact-backed models:
 
 - `moonshotai/kimi-k2.6` (recommended default)
+- `minimaxai/minimax-m2.7`
 - `qwen/qwen3-235b-a22b-instruct-2507-fp8`
 
 ## Qualification Sources
@@ -31,6 +32,7 @@ Maintainer tooling for new or refreshed qualification evidence lives under:
 
 Current checked-in artifacts:
 
+- `docs/launch-qualification/hermes-agent-setup/v2026.5.16/minimaxai-minimax-m2-7.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/moonshotai-kimi-k2-6.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/qwen-qwen3-235b-a22b-instruct-2507-fp8.md`
 
