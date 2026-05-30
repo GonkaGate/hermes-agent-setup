@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.0.0...v1.1.0) (2026-05-29)
+
+
+### Features
+
+* add minimax m2.7 hermes qualification ([4db093e](https://github.com/GonkaGate/hermes-agent-setup/commit/4db093eae123daf1577ecaf94544bade88b00db7))
+* add minimax m2.7 hermes qualification ([ae9969d](https://github.com/GonkaGate/hermes-agent-setup/commit/ae9969d7b4007d1d1232a0c035c19976df8e7241))
+
 ## [1.0.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v0.2.1...v1.0.0) (2026-05-24)
 
 
