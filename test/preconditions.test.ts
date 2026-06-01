@@ -2,6 +2,7 @@ import { access as accessPath } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
+import { HERMES_COMMAND_TIMEOUT_MS } from "../src/hermes/cli.js";
 import { runPreflightChecks } from "../src/runtime/preconditions.js";
 import { createHermesIntegrationHarness } from "./helpers/harness.js";
 
@@ -149,6 +150,96 @@ test("unparseable Hermes version output aborts before path resolution", async ()
 
     assert.equal(result.code, "unsupported_hermes_version");
     assert.match(result.message, /cannot validate/i);
+    assert.deepEqual(await harness.readFakeHermesInvocations(), [
+      ["--version"],
+    ]);
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("timed out Hermes version command aborts before path resolution", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const hermesInvocations: string[][] = [];
+
+  try {
+    const result = await runPreflightChecks(
+      {},
+      harness.createDependencies({
+        commands: {
+          async execFile(file, args, options) {
+            assert.equal(file, "hermes");
+            assert.deepEqual(args, ["--version"]);
+            assert.equal(options?.timeoutMs, HERMES_COMMAND_TIMEOUT_MS);
+            hermesInvocations.push([...args]);
+
+            return {
+              exitCode: 1,
+              signal: "SIGTERM",
+              stderr: "",
+              stdout: "",
+              timedOut: true,
+            };
+          },
+        },
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+    );
+
+    assert.equal(result.status, "failure");
+
+    if (result.status !== "failure") {
+      return;
+    }
+
+    assert.equal(result.code, "hermes_unavailable");
+    assert.equal(result.details?.hermesFailureKind, "timed_out");
+    assert.equal(result.details?.timeoutMs, HERMES_COMMAND_TIMEOUT_MS);
+    assert.match(result.message, /did not respond/i);
+    assert.deepEqual(hermesInvocations, [["--version"]]);
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("signalled Hermes version command aborts before path resolution", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionSignal: "SIGTERM",
+    });
+
+    const result = await runPreflightChecks(
+      {},
+      harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+    );
+
+    assert.equal(result.status, "failure");
+
+    if (result.status !== "failure") {
+      return;
+    }
+
+    assert.equal(result.code, "hermes_unavailable");
+    assert.equal(result.details?.hermesFailureKind, "nonzero_exit");
+    assert.match(result.message, /non-zero status/i);
     assert.deepEqual(await harness.readFakeHermesInvocations(), [
       ["--version"],
     ]);

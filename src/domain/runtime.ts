@@ -14,6 +14,7 @@ export type OnboardFailureCode =
   | "missing_tty"
   | "unsupported_platform"
   | "hermes_not_found"
+  | "hermes_unavailable"
   | "unsupported_hermes_version"
   | "managed_install"
   | "write_blocked"
@@ -109,6 +110,7 @@ export const ONBOARD_FAILURE_FAMILY_BY_CODE = {
   missing_tty: "runtime",
   unsupported_platform: "runtime",
   hermes_not_found: "runtime",
+  hermes_unavailable: "runtime",
   unsupported_hermes_version: "runtime",
   managed_install: "runtime",
   write_blocked: "runtime",

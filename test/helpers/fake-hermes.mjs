@@ -7,6 +7,14 @@ const env = process.env;
 recordInvocation(args);
 
 if (args.length === 1 && args[0] === "--version") {
+  const versionSignal = normalizeString(
+    env.GONKAGATE_FAKE_HERMES_VERSION_SIGNAL,
+  );
+
+  if (versionSignal !== undefined) {
+    process.kill(process.pid, versionSignal);
+  }
+
   respond({
     exitCode: Number(env.GONKAGATE_FAKE_HERMES_VERSION_EXIT_CODE ?? "0"),
     stderr: env.GONKAGATE_FAKE_HERMES_VERSION_STDERR ?? "",

@@ -38,6 +38,7 @@ export interface FakeHermesOptions {
   profilePathOverrides?: Record<string, FakeHermesProfileOverride>;
   versionExitCode?: number;
   versionOutput?: string;
+  versionSignal?: NodeJS.Signals;
   versionStderr?: string;
 }
 
@@ -294,6 +295,7 @@ import ${JSON.stringify(fakeHermesFixturePath)};
         ),
         GONKAGATE_FAKE_HERMES_VERSION_OUTPUT:
           options.versionOutput ?? "hermes-agent 0.14.0",
+        GONKAGATE_FAKE_HERMES_VERSION_SIGNAL: options.versionSignal ?? "",
         GONKAGATE_FAKE_HERMES_VERSION_STDERR: options.versionStderr ?? "",
         ...(options.configPathOutput === undefined
           ? {}
@@ -480,6 +482,7 @@ async function runExecFile(
   options?: {
     cwd?: string;
     env?: NodeJS.ProcessEnv;
+    timeoutMs?: number;
   },
 ) {
   try {
@@ -487,6 +490,7 @@ async function runExecFile(
       cwd: options?.cwd,
       encoding: "utf8",
       env: options?.env,
+      timeout: options?.timeoutMs,
       windowsHide: true,
     });
 
@@ -497,12 +501,14 @@ async function runExecFile(
       stdout: result.stdout,
     };
   } catch (error) {
-    if (isExecFileExitError(error)) {
+    if (isExecFileError(error)) {
       return {
-        exitCode: error.code ?? 1,
+        ...(typeof error.code === "string" ? { errorCode: error.code } : {}),
+        exitCode: typeof error.code === "number" ? error.code : 1,
         signal: error.signal ?? null,
         stderr: toText(error.stderr),
         stdout: toText(error.stdout),
+        ...(error.killed === true ? { timedOut: true } : {}),
       };
     }
 
@@ -510,14 +516,19 @@ async function runExecFile(
   }
 }
 
-function isExecFileExitError(error: unknown): error is Error & {
-  code?: number;
+function isExecFileError(error: unknown): error is Error & {
+  code?: number | string | null;
+  killed?: boolean;
   signal?: NodeJS.Signals | null;
   stderr?: string | Buffer;
   stdout?: string | Buffer;
 } {
   return (
-    error instanceof Error && "code" in error && typeof error.code === "number"
+    error instanceof Error &&
+    ("code" in error ||
+      "signal" in error ||
+      "stderr" in error ||
+      "stdout" in error)
   );
 }
 

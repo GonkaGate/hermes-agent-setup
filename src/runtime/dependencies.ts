@@ -27,10 +27,12 @@ export interface OnboardRuntimeEnvironment {
 }
 
 export interface OnboardCommandResult {
+  errorCode?: string;
   exitCode: number;
   signal: NodeJS.Signals | null;
   stderr: string;
   stdout: string;
+  timedOut?: boolean;
 }
 
 export interface OnboardCommandRunner {
@@ -40,6 +42,7 @@ export interface OnboardCommandRunner {
     options?: {
       cwd?: string;
       env?: NodeJS.ProcessEnv;
+      timeoutMs?: number;
     },
   ): Promise<OnboardCommandResult>;
 }
@@ -156,6 +159,7 @@ const NODE_COMMAND_RUNNER: OnboardCommandRunner = {
         cwd: options?.cwd,
         encoding: "utf8",
         env: options?.env,
+        timeout: options?.timeoutMs,
         windowsHide: true,
       });
 
@@ -166,12 +170,14 @@ const NODE_COMMAND_RUNNER: OnboardCommandRunner = {
         stdout: result.stdout,
       };
     } catch (error) {
-      if (isExecFileExitError(error)) {
+      if (isExecFileError(error)) {
         return {
-          exitCode: error.code ?? 1,
+          ...(typeof error.code === "string" ? { errorCode: error.code } : {}),
+          exitCode: typeof error.code === "number" ? error.code : 1,
           signal: error.signal ?? null,
           stderr: toText(error.stderr),
           stdout: toText(error.stdout),
+          ...(error.killed === true ? { timedOut: true } : {}),
         };
       }
 
@@ -226,14 +232,19 @@ export function createNodeOnboardDependencies(
   };
 }
 
-function isExecFileExitError(error: unknown): error is Error & {
-  code?: number;
+function isExecFileError(error: unknown): error is Error & {
+  code?: number | string | null;
+  killed?: boolean;
   signal?: NodeJS.Signals | null;
   stderr?: string | Buffer;
   stdout?: string | Buffer;
 } {
   return (
-    error instanceof Error && "code" in error && typeof error.code === "number"
+    error instanceof Error &&
+    ("code" in error ||
+      "signal" in error ||
+      "stderr" in error ||
+      "stdout" in error)
   );
 }
 

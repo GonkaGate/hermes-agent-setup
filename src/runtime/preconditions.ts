@@ -9,7 +9,7 @@ import {
   type OnboardPreflightSuccessResult,
   type PreflightReport,
 } from "../domain/runtime.js";
-import { ensureHermesAvailable } from "../hermes/cli.js";
+import { ensureHermesAvailable, type HermesCliFailure } from "../hermes/cli.js";
 import { resolveHermesContext } from "../hermes/path-resolution.js";
 import type { OnboardDependencies } from "./dependencies.js";
 
@@ -55,12 +55,7 @@ export async function runPreflightChecks(
   const hermesPresence = await ensureHermesAvailable(dependencies);
 
   if (!hermesPresence.ok) {
-    return createOnboardFailure("hermes_not_found", {
-      guidance:
-        "Install `hermes` so it is available on PATH, then rerun the helper.",
-      message:
-        "Hermes Agent was not found on PATH, so onboarding cannot resolve the active config context yet.",
-    });
+    return createHermesAvailabilityFailure(hermesPresence.failure);
   }
 
   const hermesVersionCheck = validateHermesVersion(hermesPresence.stdout);
@@ -135,6 +130,69 @@ export async function runPreflightChecks(
     preflight,
     status: "success-preflight",
   };
+}
+
+function createHermesAvailabilityFailure(
+  failure: HermesCliFailure,
+): OnboardFailure {
+  const hermesArgs = failure.args.join(" ");
+
+  if (failure.kind === "not_found") {
+    return createOnboardFailure("hermes_not_found", {
+      details: {
+        hermesArgs,
+        hermesFailureKind: failure.kind,
+      },
+      guidance:
+        "Install `hermes` so it is available on PATH, then rerun the helper.",
+      message:
+        "Hermes Agent was not found on PATH, so onboarding cannot resolve the active config context yet.",
+    });
+  }
+
+  if (failure.kind === "timed_out") {
+    return createOnboardFailure("hermes_unavailable", {
+      details: {
+        hermesArgs,
+        hermesFailureKind: failure.kind,
+        timeoutMs: failure.timeoutMs,
+      },
+      guidance:
+        "Check that `hermes --version` completes in this shell, repair or reinstall Hermes Agent if needed, then rerun the helper.",
+      message: `Hermes Agent did not respond to \`hermes ${hermesArgs}\` within ${failure.timeoutMs} ms, so onboarding cannot safely continue.`,
+    });
+  }
+
+  if (failure.kind === "nonzero_exit") {
+    return createOnboardFailure("hermes_unavailable", {
+      details: {
+        exitCode: failure.exitCode,
+        hermesArgs,
+        hermesFailureKind: failure.kind,
+        ...(failure.errorCode === undefined
+          ? {}
+          : {
+              errorCode: failure.errorCode,
+            }),
+      },
+      guidance:
+        "Check that `hermes --version` completes successfully in this shell, repair or reinstall Hermes Agent if needed, then rerun the helper.",
+      message:
+        "Hermes Agent returned a non-zero status for `hermes --version`, so onboarding cannot resolve the active config context yet.",
+    });
+  }
+
+  return createOnboardFailure("hermes_unavailable", {
+    details: {
+      hermesArgs,
+      hermesFailureKind: failure.kind,
+      reason: failure.reason,
+    },
+    guidance:
+      "Check that `hermes --version` prints a usable version in this shell, repair or reinstall Hermes Agent if needed, then rerun the helper.",
+    message:
+      "Hermes Agent did not return usable output for `hermes --version`, so onboarding cannot resolve the active config context yet.",
+  });
 }
 
 type HermesVersionCheckResult =
