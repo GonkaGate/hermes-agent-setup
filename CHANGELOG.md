@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.0...v1.1.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* handle unavailable hermes preflight ([b1bce42](https://github.com/GonkaGate/hermes-agent-setup/commit/b1bce4239a17d2a7ffa282ecdc2b0c21f35de1a8))
+* handle unavailable hermes preflight ([085481b](https://github.com/GonkaGate/hermes-agent-setup/commit/085481b64f6a93673ef4edd713b3d61f73a86b99))
+
 ## [1.1.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.0.0...v1.1.0) (2026-05-29)
 
 
