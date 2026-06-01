@@ -189,6 +189,42 @@ test("missing Hermes on PATH aborts before the command can continue", async () =
   assert.equal(stderr.contents, "");
 });
 
+test("Hermes version command signal renders a domain failure", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const stdout = createBufferWriter();
+  const stderr = createBufferWriter();
+
+  try {
+    await harness.installFakeHermesOnPath({
+      versionSignal: "SIGTERM",
+    });
+
+    const result = await run([], {
+      dependencies: harness.createDependencies({
+        runtime: {
+          osRelease: "6.8.0",
+          platform: "linux",
+          stdinIsTTY: true,
+          stdoutIsTTY: true,
+        },
+      }),
+      stderr,
+      stdout,
+    });
+
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.result?.status, "failure");
+    assert.equal(result.result?.code, "hermes_unavailable");
+    assert.match(stdout.contents, /Hermes Agent returned a non-zero status/i);
+    assert.doesNotMatch(stdout.contents, /Command failed: hermes --version/i);
+    assert.equal(stderr.contents, "");
+  } finally {
+    await harness.cleanup();
+  }
+});
+
 test("missing TTY aborts before the helper calls Hermes", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",

@@ -1,20 +1,31 @@
 import type { OnboardDependencies } from "../runtime/dependencies.js";
 
 export const HERMES_COMMAND = "hermes";
+export const HERMES_COMMAND_TIMEOUT_MS = 10_000;
 
 export type HermesCliFailure =
   | {
       args: readonly string[];
-      cause: unknown;
+      cause?: unknown;
+      errorCode?: string;
       kind: "not_found";
     }
   | {
       args: readonly string[];
+      errorCode?: string;
       exitCode: number;
       signal: NodeJS.Signals | null;
       stderr: string;
       stdout: string;
       kind: "nonzero_exit";
+    }
+  | {
+      args: readonly string[];
+      signal: NodeJS.Signals | null;
+      stderr: string;
+      stdout: string;
+      timeoutMs: number;
+      kind: "timed_out";
     }
   | {
       args: readonly string[];
@@ -49,12 +60,39 @@ export async function runHermesCommand(
     const result = await dependencies.commands.execFile(HERMES_COMMAND, args, {
       cwd: dependencies.runtime.cwd,
       env: dependencies.runtime.env,
+      timeoutMs: HERMES_COMMAND_TIMEOUT_MS,
     });
+
+    if (result.errorCode === "ENOENT") {
+      return {
+        failure: {
+          args,
+          errorCode: result.errorCode,
+          kind: "not_found",
+        },
+        ok: false,
+      };
+    }
+
+    if (result.timedOut === true) {
+      return {
+        failure: {
+          args,
+          kind: "timed_out",
+          signal: result.signal,
+          stderr: result.stderr,
+          stdout: result.stdout,
+          timeoutMs: HERMES_COMMAND_TIMEOUT_MS,
+        },
+        ok: false,
+      };
+    }
 
     if (result.exitCode !== 0) {
       return {
         failure: {
           args,
+          errorCode: result.errorCode,
           exitCode: result.exitCode,
           kind: "nonzero_exit",
           signal: result.signal,
