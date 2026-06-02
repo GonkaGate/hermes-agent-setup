@@ -1,5 +1,6 @@
 import type {
   MatchingProviderConflict,
+  PreWriteReviewConfirmationItem,
   PlannedConfigScrub,
   PreWriteReviewPlan,
 } from "../domain/conflicts.js";
@@ -57,28 +58,12 @@ export function buildPreWriteReviewPlan(
 
   const plannedConfigScrubs = [...collectModelScrubs(read)];
   const blockingFindings = [
-    ...sharedOpenAiKeyConflicts.filter(
-      (conflict) => conflict.status === "blocking",
-    ),
     ...(matchingProviderConflict.status === "blocking"
       ? [matchingProviderConflict]
       : []),
     ...(authPoolConflict.status === "blocking" ? [authPoolConflict] : []),
   ];
-  const confirmationItems = [
-    ...(sharedOpenAiKeyConflicts.some(
-      (conflict) => conflict.status === "confirmation_required",
-    )
-      ? [
-          {
-            conflicts: sharedOpenAiKeyConflicts.filter(
-              (conflict) => conflict.status === "confirmation_required",
-            ),
-            kind: "shared_openai_key_takeover" as const,
-          },
-        ]
-      : []),
-  ];
+  const confirmationItems: PreWriteReviewConfirmationItem[] = [];
 
   return {
     authPoolConflict,
@@ -98,16 +83,6 @@ function collectModelScrubs(
 ): readonly PlannedConfigScrub[] {
   const scrubs: PlannedConfigScrub[] = [];
   const model = read.config.model;
-
-  if (model.apiKey.length > 0) {
-    scrubs.push({
-      fieldPath: "model.api_key",
-      pathSegments: ["model", "api_key"],
-      reason:
-        "Clear model.api_key so the GonkaGate secret lives only in ~/.hermes/.env.",
-      target: "model",
-    });
-  }
 
   if (model.api.length > 0) {
     scrubs.push({

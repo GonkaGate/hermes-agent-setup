@@ -79,7 +79,7 @@ Source-backed facts:
   target-home semantics cannot be reduced only to raw `HERMES_HOME` fallback.
 - In the verified release runtime, `provider: custom` still depends on
   `model.api_key` / `model.api` and `model.api_mode`, so the helper cannot
-  treat these fields as harmless residue after takeover.
+  treat these fields as harmless residue after onboarding.
 - `OPENAI_API_KEY` in Hermes is used not only for the main custom endpoint,
   but also as a fallback for some OpenRouter resolution paths, direct-endpoint
   auxiliary/delegation/fallback flows without a separate explicit key, and
@@ -240,14 +240,16 @@ Desired behavior:
   classification when raw file inspection or public seams alone are
   insufficient for helper safety decisions
 - a helper-owned success snapshot after one successful run:
-  - helper writes `OPENAI_API_KEY=<key>` to the resolved Hermes `.env`
+  - helper writes `GONKAGATE_API_KEY=<key>` to the resolved Hermes `.env`
   - helper writes `model.provider = "custom"`
   - helper writes `model.base_url = "https://api.gonkagate.com/v1"`
   - helper writes `model.default = <selected-model>`
+  - helper writes `model.api_key = ${GONKAGATE_API_KEY}` as a non-secret env
+    reference
   - helper itself does not persist the GonkaGate secret in `config.yaml`
   - helper clears helper-detected conflicting auth/protocol fields under
     `model` if they would override or make the GonkaGate path ambiguous:
-    `model.api_key`, `model.api`, incompatible `model.api_mode`
+    `model.api`, incompatible `model.api_mode`
 - helper also resolves or aborts on helper-detected matching entries under
   `custom_providers` / `providers:` that point to the same canonical
   GonkaGate URL and would remain an active competing credential/protocol
@@ -322,10 +324,10 @@ Happy path:
 8. If the live catalog is unavailable or the intersection is empty, the
    utility exits before writing with a clear message.
 9. The utility builds a deterministic pre-write plan: target writes,
-   matching-entry cleanup, `OPENAI_BASE_URL` resolution, and shared-secret
-   takeover impact.
-10. If the plan contains confirm-required destructive changes, the utility
-    shows one consolidated review block and asks for confirmation once.
+   matching-entry checks, `OPENAI_BASE_URL` preservation, and dedicated
+   GonkaGate credential writes.
+10. If the plan contains blocking conflicts, the utility exits with clear
+    manual-resolution guidance before writing.
 11. The utility backs up the files it will actually modify.
 12. The utility writes the helper-managed config surface and `.env` with
     per-file atomic writes, rollback-safe ordering, and without falsely
@@ -420,6 +422,7 @@ model:
   provider: custom
   base_url: https://api.gonkagate.com/v1
   default: <selected-model>
+  api_key: ${GONKAGATE_API_KEY}
 ```
 
 The v1 helper creates no other top-level sections on first write.
@@ -433,12 +436,13 @@ The API key must be accepted only through a hidden interactive prompt.
 The utility must:
 
 - validate that the key looks like `gp-...`
-- write it to `~/.hermes/.env` as `OPENAI_API_KEY=<key>`
+- write it to `~/.hermes/.env` as `GONKAGATE_API_KEY=<key>`
 - not write it to stdout
-- not write it to `config.yaml`
-- before writing, evaluate whether replacing the shared `OPENAI_API_KEY` would
-  cause unintended takeover of other Hermes flows that fall back to
-  `OPENAI_API_KEY`
+- not write the raw key to `config.yaml`
+- write only `model.api_key = ${GONKAGATE_API_KEY}` to `config.yaml` so latest
+  Hermes sends the dedicated GonkaGate credential to the custom endpoint
+- preserve any unrelated existing `OPENAI_API_KEY` instead of treating it as
+  the GonkaGate main-path secret
 
 If the helper detects existing non-GonkaGate state that may use the shared
 `OPENAI_API_KEY` outside the main `model.*` path, the helper must:
@@ -479,20 +483,10 @@ If the helper detects existing non-GonkaGate state that may use the shared
     `stt.provider == "openai"` with empty `VOICE_TOOLS_OPENAI_KEY`
 - explicitly list only the affected surfaces that matched this finite matrix;
   for cron jobs, the helper shows at least the job name or ID when available
-- not continue silently
-- continue only after explicit user takeover confirmation, or else exit
-  without writing
-- if the resolved `cron/jobs.json` exists but the helper cannot reliably read
-  it while evaluating the shared-key blast radius, the helper must abort
-- if the helper detects state outside this finite matrix and cannot prove that
-  overwriting `OPENAI_API_KEY` will not change runtime behavior, it must exit
-  without writing rather than do an optimistic overwrite
-
-Default v1 policy: safe abort first. Explicit takeover confirmation is allowed
-only when the helper can clearly enumerate the matched surfaces from the finite
-matrix and the user confirms takeover in the interactive flow.
-
-The v1 success path must not leave unresolved shared-secret ambiguity.
+- preserve unrelated shared `OPENAI_API_KEY` state instead of continuing with
+  an implicit takeover
+- if the helper detects state outside this finite matrix, it must preserve
+  unrelated `OPENAI_API_KEY` state rather than do an optimistic overwrite
 
 Dedicated-credential proof rules for v1:
 
@@ -528,11 +522,10 @@ Dedicated-credential proof rules for v1:
 Pre-write review UX for v1:
 
 - the helper computes one consolidated review plan before any write
-- the helper shows at most one confirmation prompt for the whole run
-- confirmation is required when at least one of the following is true:
-  - shared `OPENAI_API_KEY` takeover affects one or more matched surfaces from
-    the finite matrix
-  - a non-empty non-canonical `OPENAI_BASE_URL` must be cleared
+- shared `OPENAI_API_KEY` state is not a confirmation item for the GonkaGate
+  main path because the helper writes the dedicated `GONKAGATE_API_KEY`
+  boundary and preserves unrelated OpenAI state
+- blocking is required when at least one of the following is true:
   - matching `custom_providers` / `providers:` entries contain auth/protocol
     fields that must be scrubbed
 - if the only planned legacy cleanup is `OPENAI_BASE_URL` already equal to
@@ -583,8 +576,9 @@ Minimum Hermes smoke suite for inclusion of a model in the v1 allowlist:
 - successful Hermes tool-use turn with a harmless local tool on a clean
   `HERMES_HOME`
 - no launch-blocking regressions in the path that the helper actually
-  configures: `provider: custom` + `model.base_url` in `config.yaml` +
-  `OPENAI_API_KEY` in `.env`
+  configures: `provider: custom` + `model.base_url` +
+  `model.api_key = ${GONKAGATE_API_KEY}` in `config.yaml` +
+  `GONKAGATE_API_KEY` in `.env`
 
 Launch qualification evidence required for every allowlisted model:
 
@@ -621,13 +615,13 @@ Managed surface for v1:
 - `model.provider`
 - `model.base_url`
 - `model.default`
-- `OPENAI_API_KEY`
+- `model.api_key = ${GONKAGATE_API_KEY}`
+- `GONKAGATE_API_KEY`
 - canonical main-path protocol selector:
   - compatible state is an empty / absent `model.api_mode`, or explicit
     `model.api_mode == "chat_completions"`
 - conflict-only cleanup surface if existing values override or make the
   canonical GonkaGate path ambiguous:
-  - `model.api_key`
   - `model.api`
   - any non-empty `model.api_mode` other than `"chat_completions"`
   - matching `custom_providers[].api_key`
@@ -662,7 +656,7 @@ Helper must:
 - use Hermes CLI primarily for path discovery and other public seams where
   they provide sufficient signal
 - not write the GonkaGate secret through argv-bearing Hermes CLI mutation
-  commands such as `hermes config set OPENAI_API_KEY ...`; a helper-owned
+  commands such as `hermes config set GONKAGATE_API_KEY ...`; a helper-owned
   atomic `.env` write is the only supported secret-persistence path for v1
 - make runtime conflict decisions against a Hermes-compatible normalized read
   view equivalent to the release-pinned `load_config()`, including `${VAR}`
@@ -677,10 +671,10 @@ Helper must:
   flow is broader than our product and writes more than we need
 - after helper completion, the canonical main-path protocol selector must be
   either absent / empty `model.api_mode`, or explicit `"chat_completions"`
-- not leave stale `model.api_key` / `model.api` / incompatible
-  `model.api_mode` (`"codex_responses"`, `"anthropic_messages"`, or any other
-  non-empty value besides `"chat_completions"`) if they would override the
-  helper-owned GonkaGate path
+- not leave stale `model.api` / incompatible `model.api_mode`
+  (`"codex_responses"`, `"anthropic_messages"`, or any other non-empty value
+  besides `"chat_completions"`) if they would override the helper-owned
+  GonkaGate path
 - not treat top-level `model.*` as the only active custom credential source;
   helper must inspect matching `custom_providers` / `providers:` compatibility
   state before claiming success
@@ -854,10 +848,10 @@ Exact write ordering for v1:
    failure as non-success and print explicit recovery instructions with backup
    paths.
 
-The chosen ordering is a blast-radius decision: writing `config.yaml` first is
-preferred over writing `OPENAI_API_KEY` first, because a premature shared-key
-takeover can affect more Hermes surfaces than a temporarily updated main
-`model.*` path.
+The chosen ordering is a blast-radius decision: write the non-secret
+`config.yaml` reference first, then persist the dedicated `GONKAGATE_API_KEY`
+secret in `.env`. If the later secret write fails, rollback removes the
+temporary main-path config reference.
 
 ### FR10. Verification Semantics
 
@@ -892,16 +886,13 @@ The utility must stop before writing under the following conditions:
 - the hidden prompt is unavailable because there is no TTY
 - the target install is in managed mode or upstream-blocked write mode
 - `config.yaml` exists but does not parse as YAML
-- the resolved `cron/jobs.json` exists, but the helper cannot reliably read it
-  while evaluating the shared `OPENAI_API_KEY` blast radius
 - the API key fails basic validation
 - live `GET /v1/models` did not return a usable qualified result
 - live `GET /v1/models` returned a terminal auth/access failure
 - live `GET /v1/models` exhausted the bounded retry budget on a transient
   catalog or server failure
-- an unresolved conflict is detected around the shared `OPENAI_API_KEY`
-- an unresolved conflict is detected around `model.api_key` / `model.api` /
-  incompatible `model.api_mode`
+- an unresolved conflict is detected around `model.api` / incompatible
+  `model.api_mode`
 - an unresolved matching-entry conflict is detected in `custom_providers` /
   `providers:` for the canonical GonkaGate URL
 - a matching custom credential-pool conflict is detected in the resolved
@@ -948,13 +939,15 @@ What is different:
    existing setup.
 4. Existing `model.api_key` / `model.api` / `model.api_mode` can survive
    onboarding and create a false-success state if the helper does not take
-   explicit ownership of those conflicts.
+   explicit ownership of those fields. The current helper owns
+   `model.api_key` by setting `${GONKAGATE_API_KEY}` and cleans conflicting
+   `model.api` / `model.api_mode`.
 5. Matching entries under `custom_providers` / `providers:` can survive
    onboarding and remain a second active credential source for the same URL if
    the helper looks only at `model.*`.
 6. Matching custom credential pools in `auth.json` can survive onboarding and
-   quietly beat the helper-owned `OPENAI_API_KEY` if the launch contract does
-   not pin an explicit abort boundary.
+   quietly beat the helper-owned main path if the launch contract does not pin
+   an explicit abort boundary.
 7. A shell-exported `OPENAI_BASE_URL` can survive cleanup of the resolved
    `.env` and leave a same-shell false-success state if the helper does not
    distinguish file-backed and inherited env conflicts.
@@ -982,7 +975,7 @@ What is different:
 17. Hermes docs still describe `fallback_model.api_key_env`, but the verified
     fallback activation path does not use it directly; if the helper starts
     proving safety through doc-only fallback semantics, it can miss a real
-    shared-key takeover surface.
+    shared-key consumer surface.
 
 ## Assumptions
 
@@ -999,13 +992,13 @@ What is different:
 
 - [assumption] Storing the secret in `.env` is better than in `config.yaml`,
   even if the upstream custom flow still allows `model.api_key`.
-  Risk: upstream Hermes-owned flows may still rematerialize the secret in
-  `model.api_key` or in a matching named custom-provider entry after the
-  helper run.
-  Validation: smoke-test runtime using only `OPENAI_API_KEY` in `.env`,
-  `model.base_url` in config, and without stale `model.api_key` / `model.api`
-  / incompatible `model.api_mode`; separately document that this is a
-  helper-owned invariant at write time, not an indefinite global invariant.
+  Risk: upstream Hermes-owned flows may still rematerialize a literal secret
+  in a matching named custom-provider entry after the helper run.
+  Validation: smoke-test runtime using `GONKAGATE_API_KEY` in `.env`,
+  `model.api_key = ${GONKAGATE_API_KEY}` and `model.base_url` in config, and
+  without stale `model.api` / incompatible `model.api_mode`; separately
+  document that this is a helper-owned invariant at write time, not an
+  indefinite global invariant.
 
 - [assumption] For v1, relying on Hermes path seams and explicit `--profile`
   is sufficient, without inventing a separate helper-specific home-resolution
@@ -1040,13 +1033,11 @@ What is different:
 4. The v1 launch boundary is finalized as Linux, macOS, and WSL2 only. Native
    Windows and Android / Termux are explicitly unsupported at launch.
 
-5. Existing shared `OPENAI_API_KEY` state is handled with a safe-abort-first
-   policy. The helper may proceed only after explicit takeover confirmation
-   when it can clearly enumerate the matched affected surface from the finite
-   detection matrix in FR4. That matrix includes `smart_model_routing`,
-   auxiliary/fallback/cron OpenRouter override surfaces, and treats ambiguous
-   `cheap_model.provider == "custom"` without an explicit `base_url` as
-   blocking in v1.
+5. Existing shared `OPENAI_API_KEY` state is preserved instead of being used as
+   the GonkaGate main-path credential. The helper writes `GONKAGATE_API_KEY`
+   and `model.api_key = ${GONKAGATE_API_KEY}`, so unrelated OpenAI consumers
+   are no longer takeover-confirmation surfaces for the primary onboarding
+   path.
 
 6. Matching entries under `custom_providers` / `providers:` that resolve to
    the canonical GonkaGate URL are not treated as harmless residue. If they
@@ -1120,11 +1111,12 @@ Primary:
 
 - the user configures GonkaGate in Hermes in one short flow without manually
   editing files
-- after completion, the user's `model.provider`, `model.base_url`, and
-  `model.default` are set correctly
+- after completion, the user's `model.provider`, `model.base_url`,
+  `model.default`, and `model.api_key = ${GONKAGATE_API_KEY}` are set
+  correctly
 - the helper writes the GonkaGate secret only to the resolved Hermes `.env`
-- the helper does not leave stale conflicting `model.api_key` / `model.api` /
-  incompatible `model.api_mode`
+- the helper does not leave stale conflicting `model.api` / incompatible
+  `model.api_mode`
 - the helper does not leave an unresolved matching `custom_providers` /
   `providers:` auth/protocol source for the same canonical GonkaGate URL
 - the helper does not claim success while a matching custom credential pool in
@@ -1158,12 +1150,14 @@ For v1, it is sufficient to have:
 - retry/error-classification behavior for `/v1/models` (`401`, terminal
   auth/access failures, transient `5xx/503`, malformed response)
 - launch qualification evidence for every model in the qualified allowlist
-- shared `OPENAI_API_KEY` takeover UX
-- the finite detection matrix for shared `OPENAI_API_KEY` blast radius
+- preservation of unrelated shared `OPENAI_API_KEY` state
+- the finite detection matrix for historical shared `OPENAI_API_KEY` blast
+  radius
 - `smart_model_routing` shared-key detection and blocking behavior
 - auxiliary/fallback/cron OpenRouter override detection behavior
 - `cron/jobs.json` direct-endpoint detection behavior
-- stale `model.api_key` / `model.api` / `model.api_mode` resolution UX
+- stale `model.api_key` / `model.api` / `model.api_mode` resolution UX,
+  including replacing `model.api_key` with `${GONKAGATE_API_KEY}`
 - matching `custom_providers` / `providers:` conflict-resolution UX
 - matching `auth.json` custom credential-pool conflict UX
 - conflicting file-backed vs inherited-process-env `OPENAI_BASE_URL`
@@ -1187,7 +1181,7 @@ Seams to pressure-test before implementation:
 1. The ownership boundary between public Hermes read seams, `.env` writes, and
    helper-owned config writes.
 2. Helper behavior when a non-standard `model` section already exists.
-3. Helper behavior for shared `OPENAI_API_KEY` conflicts,
+3. Helper behavior for preserving shared `OPENAI_API_KEY`,
    `smart_model_routing`, and existing direct endpoint overrides.
 4. Helper behavior for live `/models` success, zero qualified intersection,
    terminal auth/access failures, and transient network failures.

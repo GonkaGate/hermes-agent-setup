@@ -11,7 +11,9 @@ prompt. It does not accept a plain `--api-key` flag.
 The canonical secret contract is:
 
 - store the key only in the resolved Hermes `.env` file
-- never write the key to `config.yaml`
+- never write the raw key to `config.yaml`
+- write only the non-secret `model.api_key = ${GONKAGATE_API_KEY}` reference
+  to `config.yaml`
 - never print the raw key to stdout or stderr
 - redact raw `gp-...` values and `Bearer` tokens in unexpected error paths
 
@@ -22,10 +24,11 @@ The helper writes only the minimum GonkaGate-managed surface:
 - `model.provider`
 - `model.base_url`
 - `model.default`
-- `OPENAI_API_KEY`
+- `model.api_key = ${GONKAGATE_API_KEY}`
+- `GONKAGATE_API_KEY`
 
 Conflict-only cleanup is limited to current model-owned surfaces:
-`model.api_key`, `model.api`, and incompatible `model.api_mode`.
+`model.api` and incompatible `model.api_mode`.
 
 Write safety rules:
 

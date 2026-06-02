@@ -17,12 +17,13 @@ model:
   provider: custom
   base_url: https://api.gonkagate.com/v1
   default: qwen/qwen3-235b-a22b-instruct-2507-fp8
+  api_key: ${GONKAGATE_API_KEY}
 ```
 
 ## Sanitized Env Shape
 
 ```dotenv
-OPENAI_API_KEY=[REDACTED]
+GONKAGATE_API_KEY=[REDACTED]
 ```
 
 ## Basic Text Turn

@@ -32,7 +32,7 @@ function createStandardDependencyOverrides(
   };
 }
 
-test("review renderer produces one consolidated block with shared-key takeover details", async () => {
+test("review renderer does not require shared OPENAI_API_KEY confirmation with the dedicated GonkaGate key", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "review-plan-rich",
   });
@@ -68,13 +68,14 @@ test("review renderer produces one consolidated block with shared-key takeover d
       writePlanResult.result.review.text,
       /Selected model: qwen\/qwen3-235b-a22b-instruct-2507-fp8/,
     );
-    assert.match(
+    assert.match(writePlanResult.result.review.text, /GONKAGATE_API_KEY/);
+    assert.doesNotMatch(
       writePlanResult.result.review.text,
       /Shared OPENAI_API_KEY takeover affects/,
     );
     assert.doesNotMatch(writePlanResult.result.review.text, /Scrub matching/);
     assert.doesNotMatch(writePlanResult.result.review.text, /OPENAI_BASE_URL/);
-    assert.equal(writePlanResult.result.review.confirmationRequired, true);
+    assert.equal(writePlanResult.result.review.confirmationRequired, false);
   } finally {
     await server.close();
     await harness.cleanup();
@@ -131,7 +132,7 @@ test("canonical OPENAI_BASE_URL is not included in review cleanup", async () => 
   }
 });
 
-test("declining the consolidated confirmation exits without touching any file", async () => {
+test("shared OPENAI_API_KEY state no longer prompts before writing the dedicated GonkaGate key", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "review-plan-rich",
   });
@@ -143,8 +144,6 @@ test("declining the consolidated confirmation exits without touching any file", 
   });
   const configPath = resolve(harness.hermesHomeDir, "config.yaml");
   const envPath = resolve(harness.hermesHomeDir, ".env");
-  const beforeConfig = readFileSync(configPath, "utf8");
-  const beforeEnv = readFileSync(envPath, "utf8");
 
   try {
     await harness.installFakeHermesOnPath();
@@ -162,9 +161,6 @@ test("declining the consolidated confirmation exits without touching any file", 
     if (!writePlanResult.ok) {
       return;
     }
-
-    harness.queueSelectionResponses("cancel");
-
     const executionResult = await executePhaseFourWritePlan(
       writePlanResult.result,
       harness.createDependencies(
@@ -172,9 +168,13 @@ test("declining the consolidated confirmation exits without touching any file", 
       ),
     );
 
-    assert.equal(executionResult.status, "cancelled");
-    assert.equal(readFileSync(configPath, "utf8"), beforeConfig);
-    assert.equal(readFileSync(envPath, "utf8"), beforeEnv);
+    assert.equal(executionResult.status, "written");
+    assert.deepEqual(harness.readPromptInvocations().selectOptions, []);
+    assert.match(readFileSync(configPath, "utf8"), /\$\{GONKAGATE_API_KEY\}/);
+    assert.equal(
+      readFileSync(envPath, "utf8"),
+      "OPENAI_API_KEY=shared-upstream-key\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nGONKAGATE_API_KEY=gp-phase-four-secret\n",
+    );
   } finally {
     await server.close();
     await harness.cleanup();

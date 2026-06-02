@@ -38,10 +38,11 @@ test("config planner bootstraps a missing config.yaml with the exact minimal FR3
     assert.equal(planResult.result.existedBefore, false);
     assert.deepEqual(
       planResult.result.actions.map((action) => action.fieldPath),
-      ["model.provider", "model.base_url", "model.default"],
+      ["model.provider", "model.base_url", "model.default", "model.api_key"],
     );
     assert.deepEqual(YAML.parse(planResult.result.nextContents), {
       model: {
+        api_key: "${GONKAGATE_API_KEY}",
         base_url: "https://api.gonkagate.com/v1",
         default: selectedModelId,
         provider: "custom",
@@ -86,6 +87,7 @@ test("config planner preserves unrelated sections while rewriting only the helpe
     >;
 
     assert.deepEqual((parsed.model as Record<string, unknown>) ?? {}, {
+      api_key: "${GONKAGATE_API_KEY}",
       base_url: "https://api.gonkagate.com/v1",
       default: selectedModelId,
       provider: "custom",
@@ -136,6 +138,7 @@ test("config planner leaves legacy root provider/base_url keys untouched while w
     assert.equal(parsed.provider, "custom");
     assert.equal(parsed.base_url, "https://legacy-endpoint.example/v1");
     assert.deepEqual(parsed.model, {
+      api_key: "${GONKAGATE_API_KEY}",
       base_url: "https://api.gonkagate.com/v1",
       default: selectedModelId,
       provider: "custom",

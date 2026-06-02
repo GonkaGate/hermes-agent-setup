@@ -42,7 +42,7 @@ function redactSensitiveText(text) {
   return text
     .replace(/Bearer\s+[^\s]+/giu, "Bearer [REDACTED]")
     .replace(/\bgp-[A-Za-z0-9._-]+\b/gu, "[REDACTED]")
-    .replace(/(OPENAI_API_KEY=).+/gu, "$1[REDACTED]");
+    .replace(/((?:GONKAGATE|OPENAI)_API_KEY=).+/gu, "$1[REDACTED]");
 }
 
 function readRequiredString(value, label) {

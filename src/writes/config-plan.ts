@@ -1,5 +1,8 @@
 import YAML from "yaml";
-import { CANONICAL_BASE_URL } from "../constants/contract.js";
+import {
+  CANONICAL_BASE_URL,
+  GONKAGATE_API_KEY_CONFIG_REF,
+} from "../constants/contract.js";
 import type { PlannedConfigScrub } from "../domain/conflicts.js";
 import {
   createOnboardFailure,
@@ -56,6 +59,12 @@ export function buildConfigMutationPlan(input: BuildConfigMutationPlanInput):
       ["model", "default"],
       "model.default",
       input.selectedModelId,
+    ),
+    ...planManagedModelField(
+      modelRoot,
+      ["model", "api_key"],
+      "model.api_key",
+      GONKAGATE_API_KEY_CONFIG_REF,
     ),
   );
 
@@ -160,7 +169,10 @@ function loadEditableConfigRoot(read: NormalizedHermesRead):
 
 function planManagedModelField(
   modelRoot: Record<string, unknown>,
-  pathSegments: readonly ["model", "provider" | "base_url" | "default"],
+  pathSegments: readonly [
+    "model",
+    "provider" | "base_url" | "default" | "api_key",
+  ],
   fieldPath: string,
   nextValue: string,
 ): readonly ConfigMutationAction[] {

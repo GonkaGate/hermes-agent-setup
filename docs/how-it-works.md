@@ -42,23 +42,24 @@ Today the repository ships:
 7. Pick one qualified live model. Interactive mode keeps the model picker
    visible; single-option flows may auto-select that one qualified model.
 8. Build one deterministic pre-write review that includes planned config
-   changes and takeover confirmations. Legacy endpoint paths are not cleaned or
+   changes and blocking conflicts. Legacy endpoint paths are not cleaned or
    migrated by the helper.
 9. Create same-run backups, write `config.yaml` first, write `.env` second,
    and roll back `config.yaml` by pre-run state if the later `.env` write
    fails.
 10. Print the final summary, including target paths, applied cleanup, and the
-    reminder that `/v1/models` proved auth and catalog visibility only.
+    optional one-command Hermes smoke test. The summary still reminds users
+    that `/v1/models` proved auth and catalog visibility only.
 
 ## Product Boundaries
 
 The helper intentionally stays narrow:
 
 - it owns the GonkaGate onboarding path, not general Hermes bootstrap
-- it manages only `model.provider`, `model.base_url`, `model.default`, and
-  `OPENAI_API_KEY`, plus current `model.api_key`, `model.api`, and
-  incompatible `model.api_mode` cleanup when those compete with the managed
-  main endpoint
+- it manages only `model.provider`, `model.base_url`, `model.default`,
+  `model.api_key = ${GONKAGATE_API_KEY}`, and `.env` `GONKAGATE_API_KEY`,
+  plus current `model.api` and incompatible `model.api_mode` cleanup when
+  those compete with the managed main endpoint
 - it does not mutate `auth.json` credential pools
 - it does not mutate shell profiles
 - it does not accept arbitrary custom base URLs

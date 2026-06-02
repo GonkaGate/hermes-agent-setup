@@ -228,8 +228,9 @@ Hermes behavior and must stay explicit about that boundary.
 ## Task 5: Implement shared-key and base-URL conflict classification
 
 **Description:** Encode the PRD finite matrix for shared `OPENAI_API_KEY`
-takeover and the exact `OPENAI_BASE_URL` rules. The output of this task should
-be typed conflict data that the review planner can render without guessing.
+consumers and the exact `OPENAI_BASE_URL` rules. The output of this task should
+be typed compatibility data that the review planner can render without
+guessing.
 
 **Acceptance criteria:**
 
@@ -248,7 +249,7 @@ be typed conflict data that the review planner can render without guessing.
 - [ ] Typecheck passes: `npm run typecheck`
 - [ ] Conflict-classification tests pass: `npm test`
 - [ ] Manual check: sample fixtures produce the expected matched-surface list
-      for takeover and `OPENAI_BASE_URL` scenarios
+      for shared-key and `OPENAI_BASE_URL` scenarios
 
 **Dependencies:** Task 4
 
@@ -444,13 +445,13 @@ limits.
 **Acceptance criteria:**
 
 - [ ] The planner writes or updates `model.provider`, `model.base_url`,
-      `model.default`, and canonical `model.api_mode` state without broad
-      config ownership.
+      `model.default`, `model.api_key = ${GONKAGATE_API_KEY}`, and canonical
+      `model.api_mode` state without broad config ownership.
 - [ ] Missing `config.yaml` produces only the exact minimal bootstrap contract
       from FR3 and does not materialize unrelated default sections.
 - [ ] Existing unrelated config is preserved semantically, while conflicting
-      `model.api_key`, `model.api`, incompatible `model.api_mode`, and allowed
-      matching-entry scrub fields are handled according to FR6.
+      `model.api`, incompatible `model.api_mode`, and allowed matching-entry
+      scrub fields are handled according to FR6.
 
 **Verification:**
 
@@ -475,17 +476,16 @@ limits.
 
 **Description:** Plan the `.env` changes owned by the helper and render the
 single pre-write review block required by the PRD. This task covers
-`OPENAI_API_KEY`, file-backed `OPENAI_BASE_URL` cleanup, and the one-prompt
-confirmation rule.
+`GONKAGATE_API_KEY` while preserving unrelated `OPENAI_API_KEY` and
+file-backed `OPENAI_BASE_URL` residue outside helper ownership.
 
 **Acceptance criteria:**
 
-- [ ] The `.env` planner writes `OPENAI_API_KEY=<key>`, keeps unrelated env
-      keys intact, and applies the PRD cleanup rules for file-backed
+- [ ] The `.env` planner writes `GONKAGATE_API_KEY=<key>` and keeps unrelated
+      env keys intact, including existing `OPENAI_API_KEY` and
       `OPENAI_BASE_URL`.
 - [ ] The review renderer shows one consolidated block with planned writes,
-      cleanup actions, matched takeover surfaces, and any required confirmation.
-- [ ] Declining the confirmation exits cleanly without touching any file.
+      cleanup actions, and blocking conflicts.
 
 **Verification:**
 
@@ -603,7 +603,7 @@ behavior tests.
 **Acceptance criteria:**
 
 - [ ] The test matrix covers clean homes, missing config, malformed YAML,
-      shared-key takeover confirmation, inherited and file-backed
+      shared-key preservation, inherited and file-backed
       `OPENAI_BASE_URL`, matching named-provider conflicts, auth-pool aborts,
       backup/rollback paths, unsupported platforms, and explicit `--profile`.
 - [ ] Fixtures cover default profile, sticky profile, custom `HERMES_HOME`,
@@ -848,7 +848,7 @@ This task is the final freeze gate before calling the PRD implemented.
 | Risk                                                                     | Impact | Mitigation                                                                                                                                                                   |
 | ------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Hermes normalized-read behavior drifts after the pinned upstream release | High   | Keep the compatibility adapter explicit, back it with fixtures from the pinned release, and require requalification before claiming compatibility with newer Hermes releases |
-| Shared `OPENAI_API_KEY` takeover is misclassified                        | High   | Encode the finite matrix directly from FR4, prefer safe aborts, and keep dedicated fixtures for every matched surface                                                        |
+| Shared `OPENAI_API_KEY` preservation is misclassified                    | High   | Encode the finite matrix directly from FR4 and keep dedicated fixtures for every matched surface                                                                             |
 | YAML merge or scrub logic damages unrelated user config                  | High   | Limit the helper-managed surface, preserve unrelated semantics in tests, and keep backup plus rollback behavior mandatory                                                    |
 | Live catalog and allowlist drift to zero launchable models               | Medium | Load allowlist from checked-in qualification artifacts and abort cleanly on empty intersection before any write                                                              |
 | Public docs, package text, and skills drift away from shipped behavior   | Medium | Delay the doc flip until runtime completion, keep contract tests strict, and update mirrored skills in the same phase                                                        |

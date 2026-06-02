@@ -46,13 +46,13 @@ test("env planner creates a new .env when the resolved file is absent", async ()
     });
 
     assert.equal(plan.existedBefore, false);
-    assert.equal(plan.nextContents, "OPENAI_API_KEY=gp-phase-four-secret\n");
+    assert.equal(plan.nextContents, "GONKAGATE_API_KEY=gp-phase-four-secret\n");
   } finally {
     await harness.cleanup();
   }
 });
 
-test("env planner replaces OPENAI_API_KEY in place without disturbing unrelated key order", async () => {
+test("env planner replaces GONKAGATE_API_KEY in place without disturbing unrelated key order", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",
   });
@@ -61,7 +61,7 @@ test("env planner replaces OPENAI_API_KEY in place without disturbing unrelated 
   try {
     await writeFile(
       envPath,
-      "FOO=1\nOPENAI_API_KEY=old-secret\nBAR=2\n",
+      "FOO=1\nGONKAGATE_API_KEY=old-secret\nBAR=2\n",
       "utf8",
     );
     await harness.installFakeHermesOnPath();
@@ -82,7 +82,7 @@ test("env planner replaces OPENAI_API_KEY in place without disturbing unrelated 
     assert.equal(plan.changed, true);
     assert.equal(
       plan.nextContents,
-      "FOO=1\nOPENAI_API_KEY=gp-phase-four-secret\nBAR=2\n",
+      "FOO=1\nGONKAGATE_API_KEY=gp-phase-four-secret\nBAR=2\n",
     );
   } finally {
     await harness.cleanup();
@@ -112,18 +112,18 @@ test("env planner preserves canonical OPENAI_BASE_URL residue outside helper own
 
     assert.deepEqual(
       plan.actions.map((action) => `${action.kind}:${action.key}`),
-      ["set:OPENAI_API_KEY"],
+      ["set:GONKAGATE_API_KEY"],
     );
     assert.equal(
       plan.nextContents,
-      "OPENAI_BASE_URL=https://api.gonkagate.com/v1\nOPENAI_API_KEY=gp-phase-four-secret\n",
+      "OPENAI_BASE_URL=https://api.gonkagate.com/v1\nGONKAGATE_API_KEY=gp-phase-four-secret\n",
     );
   } finally {
     await harness.cleanup();
   }
 });
 
-test("env planner preserves non-canonical OPENAI_BASE_URL while replacing helper-owned key", async () => {
+test("env planner preserves non-canonical OPENAI_BASE_URL and shared OPENAI_API_KEY while writing the dedicated key", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "shared-key-conflict",
   });
@@ -152,7 +152,7 @@ test("env planner preserves non-canonical OPENAI_BASE_URL while replacing helper
 
     assert.equal(
       plan.nextContents,
-      "FOO=1\nOPENAI_API_KEY=gp-phase-four-secret\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nBAR=2\n",
+      "FOO=1\nOPENAI_API_KEY=shared-upstream-key\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nBAR=2\nGONKAGATE_API_KEY=gp-phase-four-secret\n",
     );
   } finally {
     await harness.cleanup();

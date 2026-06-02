@@ -97,7 +97,7 @@ function readStringArray(value, label, artifactPath) {
   return normalized;
 }
 
-function validateArtifactDocument(artifactPath, sourceText, pinnedReleaseTag) {
+function validateArtifactDocument(artifactPath, sourceText, constants) {
   const frontMatterMatch = sourceText.match(
     /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/u,
   );
@@ -151,9 +151,9 @@ function validateArtifactDocument(artifactPath, sourceText, pinnedReleaseTag) {
     throw new Error(`${artifactPath}: recommended must be a boolean.`);
   }
 
-  if (hermesReleaseTag !== pinnedReleaseTag) {
+  if (hermesReleaseTag !== constants.PINNED_HERMES_RELEASE_TAG) {
     throw new Error(
-      `${artifactPath}: expected hermesReleaseTag ${pinnedReleaseTag}, received ${hermesReleaseTag}.`,
+      `${artifactPath}: expected hermesReleaseTag ${constants.PINNED_HERMES_RELEASE_TAG}, received ${hermesReleaseTag}.`,
     );
   }
 
@@ -168,6 +168,26 @@ function validateArtifactDocument(artifactPath, sourceText, pinnedReleaseTag) {
   if (REQUIRED_HEADINGS.some((heading) => !bodyText.includes(heading))) {
     throw new Error(
       `${artifactPath}: missing one or more required body sections.`,
+    );
+  }
+
+  if (
+    !bodyText.includes(`api_key: ${constants.GONKAGATE_API_KEY_CONFIG_REF}`)
+  ) {
+    throw new Error(
+      `${artifactPath}: sanitized config must include model.api_key = ${constants.GONKAGATE_API_KEY_CONFIG_REF}.`,
+    );
+  }
+
+  if (!bodyText.includes(`${constants.GONKAGATE_API_KEY_ENV_VAR}=[REDACTED]`)) {
+    throw new Error(
+      `${artifactPath}: sanitized env must include ${constants.GONKAGATE_API_KEY_ENV_VAR}=[REDACTED].`,
+    );
+  }
+
+  if (bodyText.includes("OPENAI_API_KEY=[REDACTED]")) {
+    throw new Error(
+      `${artifactPath}: sanitized env must not use OPENAI_API_KEY for the GonkaGate helper key.`,
     );
   }
 
@@ -231,7 +251,7 @@ async function main() {
     const artifact = validateArtifactDocument(
       artifactPath,
       sourceText,
-      constants.PINNED_HERMES_RELEASE_TAG,
+      constants,
     );
     const duplicateKey = `${artifact.hermesReleaseTag}:${artifact.modelId}`;
 

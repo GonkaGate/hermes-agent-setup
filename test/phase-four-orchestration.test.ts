@@ -79,6 +79,7 @@ test("phase-four orchestration can build and apply the mutation plan end to end"
         },
       },
       model: {
+        api_key: "${GONKAGATE_API_KEY}",
         base_url: "https://api.gonkagate.com/v1",
         default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
         provider: "custom",
@@ -91,7 +92,7 @@ test("phase-four orchestration can build and apply the mutation plan end to end"
     });
     assert.equal(
       readFileSync(envPath, "utf8"),
-      "OPENAI_API_KEY=gp-phase-four-secret\nOPENAI_BASE_URL=https://api.other-provider.example/v1\n",
+      "OPENAI_API_KEY=shared-upstream-key\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nGONKAGATE_API_KEY=gp-phase-four-secret\n",
     );
   } finally {
     await server.close();

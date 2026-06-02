@@ -21,13 +21,13 @@ test("builder produces one deterministic pre-write review plan", async () => {
 
     assert.deepEqual(
       reviewPlanResult.result.plan.confirmationItems.map((item) => item.kind),
-      ["shared_openai_key_takeover"],
+      [],
     );
     assert.deepEqual(
       reviewPlanResult.result.plan.plannedConfigScrubs
         .map((scrub) => scrub.fieldPath)
         .sort(),
-      ["model.api", "model.api_key", "model.api_mode"],
+      ["model.api", "model.api_mode"],
     );
     assert.deepEqual(reviewPlanResult.result.plan.blockingFindings, []);
   } finally {
