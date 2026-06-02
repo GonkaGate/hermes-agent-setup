@@ -40,7 +40,7 @@ function createStandardDependencyOverrides(
   };
 }
 
-test("declining the consolidated confirmation cancels the public flow without touching Hermes files", async () => {
+test("public flow completes without shared OPENAI_API_KEY confirmation and preserves that key", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "review-plan-rich",
   });
@@ -52,15 +52,11 @@ test("declining the consolidated confirmation cancels the public flow without to
   });
   const stdout = createBufferWriter();
   const stderr = createBufferWriter();
-  const configPath = resolve(harness.hermesHomeDir, "config.yaml");
   const envPath = resolve(harness.hermesHomeDir, ".env");
-  const beforeConfig = readFileSync(configPath, "utf8");
-  const beforeEnv = readFileSync(envPath, "utf8");
 
   try {
     await harness.installFakeHermesOnPath();
     harness.queueSecretPromptResponses("gp-e2e-secret");
-    harness.queueSelectionResponses("cancel");
 
     const result = await run([], {
       dependencies: harness.createDependencies(
@@ -70,13 +66,16 @@ test("declining the consolidated confirmation cancels the public flow without to
       stdout,
     });
 
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.result?.status, "cancelled");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.result?.status, "success");
     assert.match(stdout.contents, /GonkaGate onboarding review/);
-    assert.match(stdout.contents, /GonkaGate onboarding cancelled\./);
+    assert.match(stdout.contents, /GonkaGate onboarding completed\./);
+    assert.doesNotMatch(stdout.contents, /Shared OPENAI_API_KEY takeover/);
     assert.equal(stderr.contents, "");
-    assert.equal(readFileSync(configPath, "utf8"), beforeConfig);
-    assert.equal(readFileSync(envPath, "utf8"), beforeEnv);
+    assert.equal(
+      readFileSync(envPath, "utf8"),
+      "OPENAI_API_KEY=shared-upstream-key\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nGONKAGATE_API_KEY=gp-e2e-secret\n",
+    );
   } finally {
     await server.close();
     await harness.cleanup();

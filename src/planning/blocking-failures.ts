@@ -68,8 +68,8 @@ function createSharedKeyFailure(
       surfaceId: conflict.surfaceId,
     },
     guidance:
-      "Resolve the ambiguous shared OPENAI_API_KEY surface in Hermes config before rerunning the helper.",
+      "Preserve the unrelated OPENAI_API_KEY state or isolate that Hermes surface with a dedicated credential before rerunning the helper.",
     message:
-      "The helper found a blocking shared OPENAI_API_KEY surface that it cannot take over safely in v1.",
+      "The helper found a blocking shared OPENAI_API_KEY surface in the compatibility conflict matrix.",
   });
 }

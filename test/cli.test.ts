@@ -137,10 +137,13 @@ test("supported setup completes the public onboarding flow end to end", async ()
       stdout.contents,
       /model\.default = qwen\/qwen3-235b-a22b-instruct-2507-fp8/,
     );
-    assert.match(stdout.contents, /Saved OPENAI_API_KEY/);
+    assert.match(stdout.contents, /model\.api_key = \$\{GONKAGATE_API_KEY\}/);
+    assert.match(stdout.contents, /Saved GONKAGATE_API_KEY/);
+    assert.match(stdout.contents, /Optional smoke test:/);
     assert.equal(stderr.contents, "");
     assert.deepEqual(YAML.parse(readFileSync(configPath, "utf8")), {
       model: {
+        api_key: "${GONKAGATE_API_KEY}",
         base_url: "https://api.gonkagate.com/v1",
         default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
         provider: "custom",
@@ -148,7 +151,7 @@ test("supported setup completes the public onboarding flow end to end", async ()
     });
     assert.equal(
       readFileSync(envPath, "utf8"),
-      "OPENAI_API_KEY=gp-cli-secret\n",
+      "GONKAGATE_API_KEY=gp-cli-secret\n",
     );
     assert.equal(modelsServer.getRequestCount(), 1);
     assert.deepEqual(await harness.readFakeHermesInvocations(), [

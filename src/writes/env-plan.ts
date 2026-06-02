@@ -1,3 +1,4 @@
+import { GONKAGATE_API_KEY_ENV_VAR } from "../constants/contract.js";
 import type { EnvMutationAction, EnvMutationPlan } from "../domain/writes.js";
 import type { NormalizedHermesRead } from "../hermes/normalized-read.js";
 import type { ValidatedApiKey } from "../validation/api-key.js";
@@ -20,18 +21,18 @@ export function buildEnvMutationPlan(
   const actions: EnvMutationAction[] = [];
   const nextApiKey = input.apiKey;
 
-  if (currentValues.OPENAI_API_KEY !== nextApiKey) {
+  if (currentValues[GONKAGATE_API_KEY_ENV_VAR] !== nextApiKey) {
     actions.push({
-      key: "OPENAI_API_KEY",
+      key: GONKAGATE_API_KEY_ENV_VAR,
       kind: "set",
       nextValueDisplay: "[hidden GonkaGate API key]",
       sensitive: true,
     });
-    currentValues.OPENAI_API_KEY = nextApiKey;
+    currentValues[GONKAGATE_API_KEY_ENV_VAR] = nextApiKey;
   }
 
-  if (!orderedKeys.includes("OPENAI_API_KEY")) {
-    orderedKeys.push("OPENAI_API_KEY");
+  if (!orderedKeys.includes(GONKAGATE_API_KEY_ENV_VAR)) {
+    orderedKeys.push(GONKAGATE_API_KEY_ENV_VAR);
   }
 
   const nextOrderedKeys = orderedKeys.filter((key) => key in currentValues);

@@ -13,6 +13,8 @@ export const CONTRACT_METADATA = {
   minimumHermesVersion: "0.14.0",
   pinnedHermesReleaseTag: "v2026.5.16",
   pinnedHermesVersion: "v0.14.0",
+  gonkagateApiKeyEnvVar: "GONKAGATE_API_KEY",
+  gonkagateApiKeyConfigRef: "${GONKAGATE_API_KEY}",
   launchQualificationArtifactRoot:
     "docs/launch-qualification/hermes-agent-setup",
   nodeFloor: ">=22.14.0",
@@ -24,13 +26,10 @@ export const CONTRACT_METADATA = {
     "model.provider",
     "model.base_url",
     "model.default",
-  ] as const,
-  helperManagedSecretEnvKeys: ["OPENAI_API_KEY"] as const,
-  helperCleanupConfigKeys: [
     "model.api_key",
-    "model.api",
-    "model.api_mode",
   ] as const,
+  helperManagedSecretEnvKeys: ["GONKAGATE_API_KEY"] as const,
+  helperCleanupConfigKeys: ["model.api", "model.api_mode"] as const,
 } as const;
 
 export const PACKAGE_NAME = CONTRACT_METADATA.packageName;
@@ -38,6 +37,10 @@ export const PRIMARY_BIN_NAME = CONTRACT_METADATA.binName;
 export const SECONDARY_BIN_NAME = CONTRACT_METADATA.legacyBinName;
 export const PACKAGE_DESCRIPTION = CONTRACT_METADATA.packageDescription;
 export const CANONICAL_BASE_URL = CONTRACT_METADATA.canonicalBaseUrl;
+export const GONKAGATE_API_KEY_ENV_VAR =
+  CONTRACT_METADATA.gonkagateApiKeyEnvVar;
+export const GONKAGATE_API_KEY_CONFIG_REF =
+  CONTRACT_METADATA.gonkagateApiKeyConfigRef;
 export const PRD_PATH = CONTRACT_METADATA.prdPath;
 export const PINNED_HERMES_RELEASE_TAG =
   CONTRACT_METADATA.pinnedHermesReleaseTag;

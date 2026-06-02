@@ -70,15 +70,17 @@ It configures Hermes to use:
 - `provider: custom`
 - `https://api.gonkagate.com/v1`
 
-Your GonkaGate key is stored only in `~/.hermes/.env`. It is never written to
-`config.yaml`.
+Your raw GonkaGate key is stored only in `~/.hermes/.env`. It is never written
+to `config.yaml`; the config only stores the `${GONKAGATE_API_KEY}` reference
+Hermes needs for the custom endpoint.
 
 When setup succeeds, the helper writes only the GonkaGate-managed surface:
 
 - `model.provider`
 - `model.base_url`
 - `model.default`
-- `OPENAI_API_KEY`
+- `model.api_key = ${GONKAGATE_API_KEY}`
+- `GONKAGATE_API_KEY`
 
 ## Important Limits
 

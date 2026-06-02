@@ -40,6 +40,8 @@ test("README captures the shipped helper contract", () => {
   assert.match(readme, /npx @gonkagate\/hermes-agent-setup/);
   assert.match(readme, /provider:\s*custom/);
   assert.match(readme, /https:\/\/api\.gonkagate\.com\/v1/);
+  assert.match(readme, /GONKAGATE_API_KEY/);
+  assert.match(readme, /model\.api_key/);
   assert.match(readme, /~\/\.hermes\/config\.yaml/);
   assert.match(readme, /~\/\.hermes\/\.env/);
   assert.match(readme, /v2026\.5\.16/);
@@ -116,7 +118,9 @@ test("implementation docs capture the shipped runtime, qualification, and securi
   assert.doesNotMatch(howItWorks, /not implemented yet/i);
 
   assert.match(security, /hidden interactive\s+prompt/i);
-  assert.match(security, /never write the key to `config\.yaml`/i);
+  assert.match(security, /never write the raw key to `config\.yaml`/i);
+  assert.match(security, /GONKAGATE_API_KEY/);
+  assert.match(security, /model\.api_key/);
   assert.match(security, /owner-only `?\.env`? permissions/i);
   assert.match(security, /mutate `auth\.json` credential\s+pools/i);
   assert.match(security, /does not scrub provider registries/i);

@@ -24,10 +24,10 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
 
   writeFileSync(
     configPath,
-    "model:\n  provider: custom\n  base_url: https://api.gonkagate.com/v1\n  default: qwen/qwen3-235b-a22b-instruct-2507-fp8\n",
+    "model:\n  provider: custom\n  base_url: https://api.gonkagate.com/v1\n  default: qwen/qwen3-235b-a22b-instruct-2507-fp8\n  api_key: ${GONKAGATE_API_KEY}\n",
     "utf8",
   );
-  writeFileSync(envPath, "OPENAI_API_KEY=gp-super-secret\n", "utf8");
+  writeFileSync(envPath, "GONKAGATE_API_KEY=gp-super-secret\n", "utf8");
   writeFileSync(
     basicLogPath,
     "assistant: GonkaGate Hermes qualification text ok\nAuthorization: Bearer sk-test-token\n",
@@ -73,6 +73,8 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
   assert.match(artifact, /modelId: qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
   assert.match(artifact, /recommended: true/);
   assert.match(artifact, /## Sanitized Config Shape/);
+  assert.match(artifact, /api_key: \$\{GONKAGATE_API_KEY\}/);
+  assert.match(artifact, /GONKAGATE_API_KEY=\[REDACTED\]/);
   assert.match(artifact, /## Basic Text Turn/);
   assert.match(artifact, /\[REDACTED\]/);
   assert.doesNotMatch(artifact, /gp-super-secret/);

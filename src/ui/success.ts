@@ -1,4 +1,8 @@
-import { CANONICAL_BASE_URL } from "../constants/contract.js";
+import {
+  CANONICAL_BASE_URL,
+  GONKAGATE_API_KEY_CONFIG_REF,
+  GONKAGATE_API_KEY_ENV_VAR,
+} from "../constants/contract.js";
 import type {
   OnboardCancelledResult,
   OnboardSuccessResult,
@@ -15,10 +19,12 @@ export function renderOnboardSuccess(result: OnboardSuccessResult): string {
     "- model.provider = custom",
     `- model.base_url = ${CANONICAL_BASE_URL}`,
     `- model.default = ${result.selectedModelId}`,
+    `- model.api_key = ${GONKAGATE_API_KEY_CONFIG_REF}`,
     "Applied file changes:",
     ...renderAppliedChanges(result),
     "Next steps:",
     "- Run `hermes` in this resolved context to start using the configured GonkaGate model.",
+    '- Optional smoke test: `hermes chat -Q --max-turns 1 -q "Do not use tools. Reply exactly: GonkaGate smoke test OK"` (sends one real model request).',
     "- The live `/v1/models` check confirmed auth and catalog visibility only. It did not verify billing/quota for the first billable request or full Hermes runtime readiness.",
     "",
   ];
@@ -45,7 +51,7 @@ function renderAppliedChanges(result: OnboardSuccessResult): readonly string[] {
     ...result.writeResult.env.actions.map((action) =>
       action.kind === "delete"
         ? `- Cleared ${action.key}`
-        : "- Saved OPENAI_API_KEY in the resolved Hermes .env file.",
+        : `- Saved ${GONKAGATE_API_KEY_ENV_VAR} in the resolved Hermes .env file.`,
     ),
   ];
 
