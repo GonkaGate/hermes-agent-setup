@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.1...v1.1.2) (2026-06-02)
+
+
+### Bug Fixes
+
+* use dedicated GonkaGate credential for Hermes ([d20d91a](https://github.com/GonkaGate/hermes-agent-setup/commit/d20d91a32865b5b115bbd15a054d700afff8ee34))
+* use dedicated GonkaGate credential for Hermes ([6903e62](https://github.com/GonkaGate/hermes-agent-setup/commit/6903e627fde00626142efccbba9bbea2a670f78e))
+
 ## [1.1.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.0...v1.1.1) (2026-06-01)
 
 
