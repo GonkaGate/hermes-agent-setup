@@ -170,7 +170,10 @@ test("shared OPENAI_API_KEY state no longer prompts before writing the dedicated
 
     assert.equal(executionResult.status, "written");
     assert.deepEqual(harness.readPromptInvocations().selectOptions, []);
-    assert.match(readFileSync(configPath, "utf8"), /\$\{GONKAGATE_API_KEY\}/);
+    assert.match(
+      readFileSync(configPath, "utf8"),
+      /key_env: GONKAGATE_API_KEY/,
+    );
     assert.equal(
       readFileSync(envPath, "utf8"),
       "OPENAI_API_KEY=shared-upstream-key\nOPENAI_BASE_URL=https://api.other-provider.example/v1\nGONKAGATE_API_KEY=gp-phase-four-secret\n",

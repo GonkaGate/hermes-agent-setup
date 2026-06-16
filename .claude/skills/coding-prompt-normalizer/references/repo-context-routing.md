@@ -34,7 +34,8 @@ Include a repository constraint only when it changes the task:
   and checked-in qualification artifacts
 - the intended Hermes config targets are `~/.hermes/config.yaml` and
   `~/.hermes/.env`
-- the intended integration path is `provider: custom`
+- the intended integration path is the named custom provider
+  `custom:gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
 - curated model selection is product-owned and artifact-backed at runtime
@@ -69,7 +70,7 @@ Useful context:
 ### Provider Architecture, Config Scope, Auth, Security
 
 Use when the request mentions `~/.hermes/config.yaml`, `~/.hermes/.env`,
-`provider: custom`, `https://api.gonkagate.com/v1`, `HERMES_HOME`,
+`custom:gonkagate`, `https://api.gonkagate.com/v1`, `HERMES_HOME`,
 `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `GET /v1/models`, `gp-...`,
 `auth.json`, `cron/jobs.json`, or Hermes config semantics.
 

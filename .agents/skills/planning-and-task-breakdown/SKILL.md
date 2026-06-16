@@ -52,7 +52,8 @@ Keep these invariants explicit in the plan whenever they matter:
 
 - the intended public entrypoint is `npx @gonkagate/hermes-agent-setup`
 - the installed primary bin is `hermes-agent-setup`
-- the intended integration path is `provider: custom`
+- the intended integration path is the named custom provider
+  `custom:gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `~/.hermes/config.yaml`
 - shell profile mutation and arbitrary custom base URLs are out of scope for
@@ -317,8 +318,8 @@ Before starting implementation, confirm:
 - [ ] Checkpoints exist between major phases
 - [ ] The plan stays truthful to current `hermes-agent-setup` reality
 - [ ] The plan preserves relevant repository invariants such as
-      `provider: custom`, `https://api.gonkagate.com/v1`, and keeping secrets in
-      `~/.hermes/.env`
+      `custom:gonkagate`, `https://api.gonkagate.com/v1`, and keeping secrets
+      in `~/.hermes/.env`
 - [ ] Mirrored skill changes update both `.agents/skills/` and
       `.claude/skills/` when applicable
 - [ ] The human has reviewed and approved the plan

@@ -31,8 +31,8 @@ Today the repository ships:
 3. Read `config.yaml`, `.env`, `auth.json`, and `cron/jobs.json`, then build a
    latest-only normalized Hermes view with `${VAR}` expansion for current
    supported surfaces.
-4. Classify shared `OPENAI_API_KEY`, current `providers:` conflicts, legacy
-   `custom_providers` residue, and matching `auth.json` credential-pool
+4. Classify shared `OPENAI_API_KEY`, non-managed `providers:` /
+   `custom_providers` conflicts, and matching `auth.json` credential-pool
    conflicts before any secret prompt or write plan is built.
 5. Prompt for a hidden GonkaGate API key and validate the `gp-...` shape
    before any network call.
@@ -42,8 +42,9 @@ Today the repository ships:
 7. Pick one qualified live model. Interactive mode keeps the model picker
    visible; single-option flows may auto-select that one qualified model.
 8. Build one deterministic pre-write review that includes planned config
-   changes and blocking conflicts. Legacy endpoint paths are not cleaned or
-   migrated by the helper.
+   changes and blocking conflicts. The old helper-managed direct custom model
+   config is auto-migrated to `custom:gonkagate`; legacy endpoint paths are
+   not cleaned or migrated by the helper.
 9. Create same-run backups, write `config.yaml` first, write `.env` second,
    and roll back `config.yaml` by pre-run state if the later `.env` write
    fails.
@@ -56,18 +57,21 @@ Today the repository ships:
 The helper intentionally stays narrow:
 
 - it owns the GonkaGate onboarding path, not general Hermes bootstrap
-- it manages only `model.provider`, `model.base_url`, `model.default`,
-  `model.api_key = ${GONKAGATE_API_KEY}`, and `.env` `GONKAGATE_API_KEY`,
-  plus current `model.api` and incompatible `model.api_mode` cleanup when
-  those compete with the managed main endpoint
+- it manages only `custom_providers[name=gonkagate].base_url`,
+  `custom_providers[name=gonkagate].key_env`,
+  `custom_providers[name=gonkagate].api_mode`,
+  `custom_providers[name=gonkagate].models`, `model.provider`,
+  `model.default`, and `.env` `GONKAGATE_API_KEY`, plus cleanup of the old
+  helper-managed direct custom fields under `model`
 - it does not mutate `auth.json` credential pools
 - it does not mutate shell profiles
 - it does not accept arbitrary custom base URLs
 
 Matching custom credential pools remain a blocking manual-resolution case in
-v1. Legacy `custom_providers` entries and current `providers:` entries with
-competing selectors are also blocking manual-resolution cases; the helper does
-not scrub provider registries.
+v1. Matching `providers:` entries, duplicate matching entries, and
+`custom_providers` entries not named `gonkagate` are blocking
+manual-resolution cases; the helper manages only the named GonkaGate provider
+entry.
 
 ## Qualification And Verification
 

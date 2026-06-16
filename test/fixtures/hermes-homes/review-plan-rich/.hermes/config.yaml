@@ -4,9 +4,6 @@ model:
   api_key: inline-main-secret
   api: https://stale-main-endpoint.example/v1
   api_mode: codex_responses
-providers:
-  gonkagate:
-    api: https://api.gonkagate.com/v1
 auxiliary:
   vision:
     provider: openrouter

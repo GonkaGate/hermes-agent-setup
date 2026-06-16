@@ -32,7 +32,7 @@ test("matching provider classifier returns none when no named custom providers t
   }
 });
 
-test("matching provider classifier blocks a providers: entry with competing selectors", async () => {
+test("matching provider classifier blocks a providers: entry for the canonical GonkaGate URL", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "providers-dict-match",
   });
@@ -58,7 +58,7 @@ test("matching provider classifier blocks a providers: entry with competing sele
 
     const [match] = conflict.matchingEntries;
 
-    assert.equal(conflict.reason, "competing_provider_selectors");
+    assert.equal(conflict.reason, "non_managed_matching_entry");
     assert.equal(match?.entry.sourceShape, "providers");
   } finally {
     await harness.cleanup();
@@ -95,7 +95,7 @@ test("matching provider classifier keeps a single canonical entry without compet
   }
 });
 
-test("matching provider classifier blocks a legacy custom_providers entry", async () => {
+test("matching provider classifier blocks a non-managed custom_providers entry", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",
   });
@@ -104,7 +104,7 @@ test("matching provider classifier blocks a legacy custom_providers entry", asyn
   try {
     await writeFile(
       configPath,
-      "custom_providers:\n  gonkagate:\n    base_url: https://api.gonkagate.com/v1\n",
+      "custom_providers:\n  legacy-gonkagate:\n    base_url: https://api.gonkagate.com/v1\n",
       "utf8",
     );
     await harness.installFakeHermesOnPath();
@@ -125,7 +125,7 @@ test("matching provider classifier blocks a legacy custom_providers entry", asyn
       return;
     }
 
-    assert.equal(conflict.reason, "legacy_custom_provider_entry");
+    assert.equal(conflict.reason, "non_managed_matching_entry");
     assert.equal(
       conflict.matchingEntries[0]?.entry.sourceShape,
       "custom_providers",

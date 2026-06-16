@@ -48,10 +48,7 @@ export type MatchingProviderConflict =
   | {
       kind: "matching_provider";
       matchingEntries: readonly MatchingProviderMatch[];
-      reason:
-        | "competing_provider_selectors"
-        | "legacy_custom_provider_entry"
-        | "multiple_matching_entries";
+      reason: "multiple_matching_entries" | "non_managed_matching_entry";
       status: "blocking";
     };
 

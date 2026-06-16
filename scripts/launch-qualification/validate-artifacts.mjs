@@ -172,10 +172,16 @@ function validateArtifactDocument(artifactPath, sourceText, constants) {
   }
 
   if (
-    !bodyText.includes(`api_key: ${constants.GONKAGATE_API_KEY_CONFIG_REF}`)
+    !bodyText.includes(`provider: ${constants.GONKAGATE_PROVIDER_SELECTOR}`)
   ) {
     throw new Error(
-      `${artifactPath}: sanitized config must include model.api_key = ${constants.GONKAGATE_API_KEY_CONFIG_REF}.`,
+      `${artifactPath}: sanitized config must include model.provider = ${constants.GONKAGATE_PROVIDER_SELECTOR}.`,
+    );
+  }
+
+  if (!bodyText.includes(`key_env: ${constants.GONKAGATE_API_KEY_ENV_VAR}`)) {
+    throw new Error(
+      `${artifactPath}: sanitized config must include key_env: ${constants.GONKAGATE_API_KEY_ENV_VAR}.`,
     );
   }
 

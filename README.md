@@ -29,8 +29,8 @@ primary bin is `hermes-agent-setup`.
 ## Is This For You?
 
 This helper is for you if you want Hermes to use GonkaGate as its primary
-OpenAI-compatible endpoint through `provider: custom` and
-`https://api.gonkagate.com/v1`.
+OpenAI-compatible endpoint through the named custom provider
+`custom:gonkagate` and `https://api.gonkagate.com/v1`.
 
 You should also have:
 
@@ -67,19 +67,22 @@ The helper manages these Hermes files:
 
 It configures Hermes to use:
 
-- `provider: custom`
+- `model.provider = custom:gonkagate`
+- `custom_providers[name=gonkagate]`
 - `https://api.gonkagate.com/v1`
 
 Your raw GonkaGate key is stored only in `~/.hermes/.env`. It is never written
-to `config.yaml`; the config only stores the `${GONKAGATE_API_KEY}` reference
-Hermes needs for the custom endpoint.
+to `config.yaml`; the config only stores `key_env: GONKAGATE_API_KEY` on the
+managed custom provider.
 
 When setup succeeds, the helper writes only the GonkaGate-managed surface:
 
+- `custom_providers[name=gonkagate].base_url`
+- `custom_providers[name=gonkagate].key_env`
+- `custom_providers[name=gonkagate].api_mode`
+- `custom_providers[name=gonkagate].models`
 - `model.provider`
-- `model.base_url`
 - `model.default`
-- `model.api_key = ${GONKAGATE_API_KEY}`
 - `GONKAGATE_API_KEY`
 
 ## Important Limits
@@ -88,9 +91,9 @@ The shipped helper intentionally stays narrow:
 
 - it does not replace `hermes setup`
 - it does not support legacy endpoint paths such as `OPENAI_BASE_URL`,
-  `LLM_MODEL`, root-level `provider` / `base_url`, or legacy
-  `custom_providers`
+  `LLM_MODEL`, or root-level `provider` / `base_url`
 - it does not accept arbitrary custom base URLs
+- it does not manage arbitrary custom providers beyond the `gonkagate` entry
 - it does not mutate shell profiles
 - it does not mutate `auth.json` credential pools
 - it does not support native Windows
@@ -101,6 +104,13 @@ The current checked-in launch qualification artifacts include:
 - `moonshotai/kimi-k2.6` (recommended default)
 - `minimaxai/minimax-m2.7`
 - `qwen/qwen3-235b-a22b-instruct-2507-fp8`
+
+After setup, Hermes can switch between the configured GonkaGate models with
+commands such as:
+
+```text
+/model custom:gonkagate:moonshotai/kimi-k2.6 --global
+```
 
 If you need general Hermes setup help or deeper product context first, start at
 [gonkagate.com](https://gonkagate.com).

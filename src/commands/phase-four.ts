@@ -37,6 +37,7 @@ export function buildPhaseFourWritePlan(selection: PhaseThreeSelectionReady):
 
   const configPlanResult = buildConfigMutationPlan({
     plannedConfigScrubs: selection.reviewPlan.plan.plannedConfigScrubs,
+    qualifiedLiveModels: selection.qualifiedLiveModels,
     read: selection.reviewPlan.read,
     selectedModelId: selection.selectedModel.model.modelId,
   });

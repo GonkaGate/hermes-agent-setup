@@ -12,8 +12,8 @@ The canonical secret contract is:
 
 - store the key only in the resolved Hermes `.env` file
 - never write the raw key to `config.yaml`
-- write only the non-secret `model.api_key = ${GONKAGATE_API_KEY}` reference
-  to `config.yaml`
+- write only the non-secret `key_env: GONKAGATE_API_KEY` selector on the
+  managed `custom_providers[name=gonkagate]` entry
 - never print the raw key to stdout or stderr
 - redact raw `gp-...` values and `Bearer` tokens in unexpected error paths
 
@@ -21,13 +21,16 @@ The canonical secret contract is:
 
 The helper writes only the minimum GonkaGate-managed surface:
 
+- `custom_providers[name=gonkagate].base_url`
+- `custom_providers[name=gonkagate].key_env`
+- `custom_providers[name=gonkagate].api_mode`
+- `custom_providers[name=gonkagate].models`
 - `model.provider`
-- `model.base_url`
 - `model.default`
-- `model.api_key = ${GONKAGATE_API_KEY}`
 - `GONKAGATE_API_KEY`
 
-Conflict-only cleanup is limited to current model-owned surfaces:
+Cleanup is limited to the old helper-managed direct custom model fields
+(`model.base_url`, `model.api_key`) plus current model-owned conflict surfaces:
 `model.api` and incompatible `model.api_mode`.
 
 Write safety rules:
@@ -43,15 +46,14 @@ Write safety rules:
 The shipped runtime treats these as active security or correctness surfaces:
 
 - shared `OPENAI_API_KEY` consumers
-- current `providers:` entries with competing selectors for the canonical
-  GonkaGate URL
-- legacy `custom_providers` entries that still point at the canonical
-  GonkaGate URL
+- current `providers:` entries that point at the canonical GonkaGate URL
+- duplicate matching `custom_providers` entries or matching entries not named
+  `gonkagate`
 - matching `auth.json` credential pools under `credential_pool["custom:*"]`
 
-The helper does not scrub provider registries or mutate `auth.json` credential
-pools in v1. These remain blocking manual-resolution cases with Hermes-owned
-follow-up.
+The helper manages only `custom_providers[name=gonkagate]`. It does not mutate
+arbitrary provider registries or `auth.json` credential pools in v1. These
+remain blocking manual-resolution cases with Hermes-owned follow-up.
 
 ## Qualification And Verification Limits
 
@@ -77,6 +79,6 @@ The helper does not take ownership of:
 - arbitrary custom provider management
 - arbitrary custom base URLs
 - legacy endpoint paths such as `OPENAI_BASE_URL`, `LLM_MODEL`, root-level
-  `provider` / `base_url`, and legacy `custom_providers`
+  `provider` / `base_url`
 - repository-local `.env` files
 - direct mutation of `auth.json`

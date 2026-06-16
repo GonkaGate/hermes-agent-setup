@@ -16,8 +16,9 @@ Current honest state:
   newer, and fails older Hermes versions during preflight
 - the current CLI resolves the active Hermes context, classifies conflicts,
   prompts for a hidden GonkaGate key, fetches the live catalog, intersects it
-  with checked-in launch qualification artifacts, writes the managed Hermes
-  surface, and rolls back if a later write fails
+  with checked-in launch qualification artifacts, writes the managed
+  `custom_providers[name=gonkagate]` / `model.provider = custom:gonkagate`
+  Hermes surface, and rolls back if a later write fails
 - checked-in launch qualification artifacts exist under
   `docs/launch-qualification/hermes-agent-setup/`
 
@@ -34,16 +35,17 @@ Product invariants:
 - Hermes remains the upstream-owned bootstrap flow
 - the primary public entrypoint is `npx @gonkagate/hermes-agent-setup`
 - the installed primary bin is `hermes-agent-setup`
-- the integration path is `provider: custom`
+- the integration path is the named custom provider `custom:gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
 - curated model selection is product-owned
 - latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or newer is the supported
   runtime floor
 - shell profile mutation is out of scope
-- legacy endpoint paths such as `OPENAI_BASE_URL`, `LLM_MODEL`, root-level
-  `provider` / `base_url`, and legacy `custom_providers` are out of scope for
-  the public flow
+- legacy endpoint paths such as `OPENAI_BASE_URL`, `LLM_MODEL`, and root-level
+  `provider` / `base_url` are out of scope for the public flow
+- arbitrary custom-provider management is out of scope; the helper owns only
+  the `custom_providers` entry named `gonkagate`
 - arbitrary custom base URLs are out of scope for the public flow
 - v1 launch scope is Linux, macOS, and WSL2 only
 - public onboarding inherits current GonkaGate Terms availability boundaries;
