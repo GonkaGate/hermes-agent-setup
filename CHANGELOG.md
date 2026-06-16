@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.2...v1.2.0) (2026-06-16)
+
+
+### Features
+
+* configure GonkaGate as named Hermes provider ([fccc7e3](https://github.com/GonkaGate/hermes-agent-setup/commit/fccc7e3094d1cd4afb13e274993c7d0d16fddbe6))
+* configure GonkaGate as named Hermes provider ([2c0c73a](https://github.com/GonkaGate/hermes-agent-setup/commit/2c0c73a4792cf3e8ee11bec8de8a97e8d9021856))
+
 ## [1.1.2](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.1...v1.1.2) (2026-06-02)
 
 
