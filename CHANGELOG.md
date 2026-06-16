@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.2.0...v1.2.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* use providers.gonkagate for Hermes model picker ([95c13b6](https://github.com/GonkaGate/hermes-agent-setup/commit/95c13b6715f11fb81821642bf6d3ed1bac209bf3))
+* use providers.gonkagate for Hermes model picker ([a4cce43](https://github.com/GonkaGate/hermes-agent-setup/commit/a4cce43798125b3d5959a1df35b12d5649179c9a))
+
 ## [1.2.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.1.2...v1.2.0) (2026-06-16)
 
 
