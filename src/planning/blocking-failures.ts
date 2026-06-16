@@ -31,9 +31,9 @@ export function createPreWriteBlockingFailure(
           reason: blockingFinding.reason,
         },
         guidance:
-          "Keep only one helper-managed `custom_providers` entry named `gonkagate` for the GonkaGate URL, remove matching `providers:` or duplicate custom-provider entries, then rerun the helper.",
+          "Keep only one helper-managed `providers.gonkagate` entry for the GonkaGate URL, remove duplicate or non-managed matching custom-provider entries, then rerun the helper.",
         message:
-          "A Hermes custom-provider entry still targets the canonical GonkaGate URL outside the helper-managed `custom_providers[name=gonkagate]` entry.",
+          "A Hermes custom-provider entry still targets the canonical GonkaGate URL outside the helper-managed `providers.gonkagate` entry.",
       });
     case "shared_openai_key":
       return createSharedKeyFailure(blockingFinding);

@@ -185,6 +185,18 @@ function validateArtifactDocument(artifactPath, sourceText, constants) {
     );
   }
 
+  if (!bodyText.includes("transport: chat_completions")) {
+    throw new Error(
+      `${artifactPath}: sanitized config must include transport: chat_completions.`,
+    );
+  }
+
+  if (!bodyText.includes("discover_models: false")) {
+    throw new Error(
+      `${artifactPath}: sanitized config must include discover_models: false.`,
+    );
+  }
+
   if (!bodyText.includes(`${constants.GONKAGATE_API_KEY_ENV_VAR}=[REDACTED]`)) {
     throw new Error(
       `${artifactPath}: sanitized env must include ${constants.GONKAGATE_API_KEY_ENV_VAR}=[REDACTED].`,

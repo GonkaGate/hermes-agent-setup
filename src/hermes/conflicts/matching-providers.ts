@@ -41,10 +41,7 @@ export function classifyMatchingProviders(
     };
   }
 
-  if (
-    singleMatch.entry.sourceShape !== "custom_providers" ||
-    singleMatch.entry.normalizedName !== GONKAGATE_PROVIDER_NAME
-  ) {
+  if (singleMatch.entry.normalizedName !== GONKAGATE_PROVIDER_NAME) {
     return {
       kind: "matching_provider",
       matchingEntries,

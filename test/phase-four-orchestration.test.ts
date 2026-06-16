@@ -78,20 +78,21 @@ test("phase-four orchestration can build and apply the mutation plan end to end"
           provider: "openrouter",
         },
       },
-      custom_providers: [
-        {
-          api_mode: "chat_completions",
+      model: {
+        default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+        provider: "gonkagate",
+      },
+      providers: {
+        gonkagate: {
           base_url: "https://api.gonkagate.com/v1",
+          discover_models: false,
           key_env: "GONKAGATE_API_KEY",
           models: {
             "qwen/qwen3-235b-a22b-instruct-2507-fp8": {},
           },
           name: "gonkagate",
+          transport: "chat_completions",
         },
-      ],
-      model: {
-        default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
-        provider: "custom:gonkagate",
       },
     });
     assert.equal(

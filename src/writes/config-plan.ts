@@ -25,13 +25,13 @@ export interface BuildConfigMutationPlanInput {
   selectedModelId: string;
 }
 
-const MANAGED_PROVIDER_API_MODE = "chat_completions";
+const MANAGED_PROVIDER_TRANSPORT = "chat_completions";
 const MANAGED_PROVIDER_REMOVED_FIELDS = [
   "api",
   "url",
   "api_key",
   "api_key_env",
-  "transport",
+  "api_mode",
 ] as const;
 
 export function buildConfigMutationPlan(input: BuildConfigMutationPlanInput):
@@ -56,7 +56,8 @@ export function buildConfigMutationPlan(input: BuildConfigMutationPlanInput):
   const qualifiedModelIds = getQualifiedModelIds(input);
 
   actions.push(
-    ...planManagedCustomProvider(nextRoot, qualifiedModelIds),
+    ...planManagedProvider(nextRoot, qualifiedModelIds),
+    ...planRemovedLegacyManagedCustomProvider(nextRoot),
     ...planManagedModelField(
       modelRoot,
       ["model", "provider"],
@@ -197,96 +198,125 @@ function planManagedModelField(
   ];
 }
 
-function planManagedCustomProvider(
+function planManagedProvider(
   root: Record<string, unknown>,
   modelIds: readonly string[],
 ): readonly ConfigMutationAction[] {
-  const currentValue = root.custom_providers;
-  const providers = normalizeEditableCustomProviders(currentValue);
-  const existingIndex = providers.findIndex(
-    (provider) =>
-      normalizeProviderName(readProviderName(provider)) ===
-      GONKAGATE_PROVIDER_NAME,
-  );
-  const managedIndex = existingIndex === -1 ? providers.length : existingIndex;
-  const existingEntry = existingIndex === -1 ? {} : providers[existingIndex];
+  const currentValue = root.providers;
+  const providers = isRecord(currentValue) ? { ...currentValue } : {};
+  const existingValue = providers[GONKAGATE_PROVIDER_NAME];
+  const existingEntry = isRecord(existingValue) ? existingValue : {};
   const actions: ConfigMutationAction[] = [];
 
-  if (currentValue !== undefined && !Array.isArray(currentValue)) {
+  if (currentValue !== undefined && !isRecord(currentValue)) {
     actions.push({
-      fieldPath: "custom_providers",
+      fieldPath: "providers",
       kind: "set",
-      nextValueDisplay: "array",
-      pathSegments: ["custom_providers"],
+      nextValueDisplay: "mapping",
+      pathSegments: ["providers"],
     });
   }
 
-  if (existingIndex === -1) {
+  if (!isRecord(existingValue)) {
     actions.push({
-      fieldPath: "custom_providers[name=gonkagate]",
+      fieldPath: "providers.gonkagate",
       kind: "set",
       nextValueDisplay: "managed GonkaGate provider",
-      pathSegments: ["custom_providers", managedIndex],
+      pathSegments: ["providers", GONKAGATE_PROVIDER_NAME],
     });
-  }
-
-  if (!isRecord(existingEntry)) {
-    providers[managedIndex] = createManagedProviderEntry({}, modelIds);
-    root.custom_providers = providers;
-    return actions;
   }
 
   const nextEntry = createManagedProviderEntry(existingEntry, modelIds);
 
   actions.push(
+    ...planManagedProviderField(existingEntry, "base_url", CANONICAL_BASE_URL),
     ...planManagedProviderField(
       existingEntry,
-      managedIndex,
-      "base_url",
-      CANONICAL_BASE_URL,
-    ),
-    ...planManagedProviderField(
-      existingEntry,
-      managedIndex,
       "key_env",
       GONKAGATE_API_KEY_ENV_VAR,
     ),
     ...planManagedProviderField(
       existingEntry,
-      managedIndex,
-      "api_mode",
-      MANAGED_PROVIDER_API_MODE,
+      "transport",
+      MANAGED_PROVIDER_TRANSPORT,
     ),
-    ...planManagedProviderModels(existingEntry, managedIndex, modelIds),
-    ...planRemovedManagedProviderFields(existingEntry, managedIndex),
+    ...planManagedProviderBooleanField(existingEntry, "discover_models", false),
+    ...planManagedProviderModels(existingEntry, modelIds),
+    ...planRemovedManagedProviderFields(existingEntry),
   );
 
-  providers[managedIndex] = nextEntry;
-  root.custom_providers = providers;
+  providers[GONKAGATE_PROVIDER_NAME] = nextEntry;
+  root.providers = providers;
   return actions;
 }
 
-function normalizeEditableCustomProviders(
-  value: unknown,
-): Record<string, unknown>[] {
-  if (Array.isArray(value)) {
-    return value
-      .filter((entry): entry is Record<string, unknown> => isRecord(entry))
-      .map((entry) => ({ ...entry }));
+function planRemovedLegacyManagedCustomProvider(
+  root: Record<string, unknown>,
+): readonly ConfigMutationAction[] {
+  const currentValue = root.custom_providers;
+
+  if (Array.isArray(currentValue)) {
+    const nextProviders = currentValue.filter(
+      (entry) =>
+        !(
+          isRecord(entry) &&
+          normalizeProviderName(readProviderName(entry)) ===
+            GONKAGATE_PROVIDER_NAME
+        ),
+    );
+
+    if (nextProviders.length === currentValue.length) {
+      return [];
+    }
+
+    if (nextProviders.length === 0) {
+      delete root.custom_providers;
+    } else {
+      root.custom_providers = nextProviders;
+    }
+
+    return [
+      {
+        fieldPath: "custom_providers[name=gonkagate]",
+        kind: "delete",
+        pathSegments: ["custom_providers"],
+      },
+    ];
   }
 
-  if (!isRecord(value)) {
+  if (!isRecord(currentValue)) {
     return [];
   }
 
-  return Object.entries(value)
-    .filter((entry): entry is [string, Record<string, unknown>] =>
-      isRecord(entry[1]),
-    )
-    .map(([name, entry]) => ({
-      name: typeof entry.name === "string" ? entry.name : name,
-      ...entry,
-    }));
+  const nextProviders = { ...currentValue };
+  const removed = Object.entries(nextProviders).some(([key, value]) => {
+    const entryName =
+      isRecord(value) && typeof value.name === "string" ? value.name : key;
+    if (normalizeProviderName(entryName) !== GONKAGATE_PROVIDER_NAME) {
+      return false;
+    }
+
+    delete nextProviders[key];
+    return true;
+  });
+
+  if (!removed) {
+    return [];
+  }
+
+  if (Object.keys(nextProviders).length === 0) {
+    delete root.custom_providers;
+  } else {
+    root.custom_providers = nextProviders;
+  }
+
+  return [
+    {
+      fieldPath: "custom_providers[name=gonkagate]",
+      kind: "delete",
+      pathSegments: ["custom_providers", GONKAGATE_PROVIDER_NAME],
+    },
+  ];
 }
 
 function createManagedProviderEntry(
@@ -301,18 +331,18 @@ function createManagedProviderEntry(
 
   return {
     ...nextEntry,
-    api_mode: MANAGED_PROVIDER_API_MODE,
     base_url: CANONICAL_BASE_URL,
+    discover_models: false,
     key_env: GONKAGATE_API_KEY_ENV_VAR,
     models: Object.fromEntries(modelIds.map((modelId) => [modelId, {}])),
     name: GONKAGATE_PROVIDER_NAME,
+    transport: MANAGED_PROVIDER_TRANSPORT,
   };
 }
 
 function planManagedProviderField(
   existingEntry: Record<string, unknown>,
-  providerIndex: number,
-  key: "api_mode" | "base_url" | "key_env",
+  key: "base_url" | "key_env" | "transport",
   nextValue: string,
 ): readonly ConfigMutationAction[] {
   const currentValue =
@@ -324,22 +354,38 @@ function planManagedProviderField(
 
   return [
     {
-      fieldPath: `custom_providers[name=gonkagate].${key}`,
+      fieldPath: `providers.gonkagate.${key}`,
       kind: "set",
       nextValueDisplay: nextValue,
-      pathSegments: ["custom_providers", providerIndex, key],
+      pathSegments: ["providers", GONKAGATE_PROVIDER_NAME, key],
+    },
+  ];
+}
+
+function planManagedProviderBooleanField(
+  existingEntry: Record<string, unknown>,
+  key: "discover_models",
+  nextValue: boolean,
+): readonly ConfigMutationAction[] {
+  if (existingEntry[key] === nextValue) {
+    return [];
+  }
+
+  return [
+    {
+      fieldPath: `providers.gonkagate.${key}`,
+      kind: "set",
+      nextValueDisplay: String(nextValue),
+      pathSegments: ["providers", GONKAGATE_PROVIDER_NAME, key],
     },
   ];
 }
 
 function planManagedProviderModels(
   existingEntry: Record<string, unknown>,
-  providerIndex: number,
   modelIds: readonly string[],
 ): readonly ConfigMutationAction[] {
-  const existingModels = isRecord(existingEntry.models)
-    ? Object.keys(existingEntry.models).sort()
-    : [];
+  const existingModels = readExistingProviderModelIds(existingEntry.models);
 
   if (arraysEqual(existingModels, [...modelIds])) {
     return [];
@@ -347,24 +393,23 @@ function planManagedProviderModels(
 
   return [
     {
-      fieldPath: "custom_providers[name=gonkagate].models",
+      fieldPath: "providers.gonkagate.models",
       kind: "set",
       nextValueDisplay: modelIds.join(", "),
-      pathSegments: ["custom_providers", providerIndex, "models"],
+      pathSegments: ["providers", GONKAGATE_PROVIDER_NAME, "models"],
     },
   ];
 }
 
 function planRemovedManagedProviderFields(
   existingEntry: Record<string, unknown>,
-  providerIndex: number,
 ): readonly ConfigMutationAction[] {
   return MANAGED_PROVIDER_REMOVED_FIELDS.filter(
     (key) => key in existingEntry,
   ).map((key) => ({
-    fieldPath: `custom_providers[name=gonkagate].${key}`,
+    fieldPath: `providers.gonkagate.${key}`,
     kind: "delete",
-    pathSegments: ["custom_providers", providerIndex, key],
+    pathSegments: ["providers", GONKAGATE_PROVIDER_NAME, key],
   }));
 }
 
@@ -408,6 +453,22 @@ function getQualifiedModelIds(
 
 function readProviderName(entry: Record<string, unknown>): string {
   return typeof entry.name === "string" ? entry.name : "";
+}
+
+function readExistingProviderModelIds(value: unknown): string[] {
+  if (isRecord(value)) {
+    return Object.keys(value).sort();
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .filter((modelId): modelId is string => typeof modelId === "string")
+      .map((modelId) => modelId.trim())
+      .filter((modelId) => modelId.length > 0)
+      .sort();
+  }
+
+  return [];
 }
 
 function arraysEqual(

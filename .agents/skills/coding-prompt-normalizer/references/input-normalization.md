@@ -57,7 +57,7 @@ Treat these as examples of tokens that must survive exactly if they appear:
 
 - `~/.hermes/config.yaml`
 - `~/.hermes/.env`
-- `custom:gonkagate`
+- `gonkagate`
 - `https://api.gonkagate.com/v1`
 - `npx @gonkagate/hermes-agent-setup`
 - `hermes-agent-setup`

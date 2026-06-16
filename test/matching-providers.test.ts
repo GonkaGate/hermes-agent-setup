@@ -32,12 +32,48 @@ test("matching provider classifier returns none when no named custom providers t
   }
 });
 
-test("matching provider classifier blocks a providers: entry for the canonical GonkaGate URL", async () => {
+test("matching provider classifier keeps a single providers.gonkagate entry compatible", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "providers-dict-match",
   });
 
   try {
+    await harness.installFakeHermesOnPath();
+
+    const readResult = await loadNormalizedReadForFixture(harness);
+
+    assert.equal(readResult.ok, true);
+
+    if (!readResult.ok) {
+      return;
+    }
+
+    const conflict = classifyMatchingProviders(readResult.read);
+
+    assert.equal(conflict.status, "compatible");
+
+    if (conflict.status !== "compatible") {
+      return;
+    }
+
+    assert.equal(conflict.matchingEntries[0]?.entry.sourceShape, "providers");
+  } finally {
+    await harness.cleanup();
+  }
+});
+
+test("matching provider classifier blocks a non-managed providers entry", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const configPath = resolve(harness.hermesHomeDir, "config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      "providers:\n  legacy-gonkagate:\n    base_url: https://api.gonkagate.com/v1\n",
+      "utf8",
+    );
     await harness.installFakeHermesOnPath();
 
     const readResult = await loadNormalizedReadForFixture(harness);
@@ -56,10 +92,8 @@ test("matching provider classifier blocks a providers: entry for the canonical G
       return;
     }
 
-    const [match] = conflict.matchingEntries;
-
     assert.equal(conflict.reason, "non_managed_matching_entry");
-    assert.equal(match?.entry.sourceShape, "providers");
+    assert.equal(conflict.matchingEntries[0]?.entry.sourceShape, "providers");
   } finally {
     await harness.cleanup();
   }

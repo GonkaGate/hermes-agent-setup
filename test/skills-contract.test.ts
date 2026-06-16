@@ -102,7 +102,7 @@ test("coding-prompt-normalizer is adapted to hermes-agent-setup", () => {
   assert.match(combined, /hermes-agent-setup/);
   assert.match(combined, /~\/\.hermes\/config\.yaml/);
   assert.match(combined, /~\/\.hermes\/\.env/);
-  assert.match(combined, /custom:gonkagate/);
+  assert.match(combined, /gonkagate/);
   assert.match(combined, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(combined, /launch-qualification\/hermes-agent-setup/);
   assert.match(combined, /shipped runtime|shipped helper/i);
@@ -145,7 +145,7 @@ test("hermes-compatibility-audit is adapted to hermes-agent-setup", () => {
   assert.match(combined, /hermes-agent-setup/);
   assert.match(combined, /latest stable upstream `hermes-agent` release/);
   assert.match(combined, /~\/\.hermes\/config\.yaml/);
-  assert.match(combined, /custom:gonkagate/);
+  assert.match(combined, /gonkagate/);
   assert.match(combined, /custom_providers/);
   assert.match(
     combined,
@@ -173,7 +173,7 @@ test("planning-and-task-breakdown is adapted to hermes-agent-setup", () => {
   assert.equal(existsSync(resolve(planningRoot, "SKILL.md")), true);
   assert.match(combined, /hermes-agent-setup/);
   assert.match(combined, /docs\/specs\/hermes-agent-setup-prd\/spec\.md/);
-  assert.match(combined, /custom:gonkagate/);
+  assert.match(combined, /gonkagate/);
   assert.match(combined, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(combined, /~\/\.hermes\/\.env/);
   assert.match(combined, /npm run ci/);

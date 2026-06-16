@@ -43,7 +43,7 @@ Today the repository ships:
    visible; single-option flows may auto-select that one qualified model.
 8. Build one deterministic pre-write review that includes planned config
    changes and blocking conflicts. The old helper-managed direct custom model
-   config is auto-migrated to `custom:gonkagate`; legacy endpoint paths are
+   config is auto-migrated to `gonkagate`; legacy endpoint paths are
    not cleaned or migrated by the helper.
 9. Create same-run backups, write `config.yaml` first, write `.env` second,
    and roll back `config.yaml` by pre-run state if the later `.env` write
@@ -57,10 +57,11 @@ Today the repository ships:
 The helper intentionally stays narrow:
 
 - it owns the GonkaGate onboarding path, not general Hermes bootstrap
-- it manages only `custom_providers[name=gonkagate].base_url`,
-  `custom_providers[name=gonkagate].key_env`,
-  `custom_providers[name=gonkagate].api_mode`,
-  `custom_providers[name=gonkagate].models`, `model.provider`,
+- it manages only `providers.gonkagate.base_url`,
+  `providers.gonkagate.key_env`,
+  `providers.gonkagate.transport`,
+  `providers.gonkagate.discover_models`,
+  `providers.gonkagate.models`, `model.provider`,
   `model.default`, and `.env` `GONKAGATE_API_KEY`, plus cleanup of the old
   helper-managed direct custom fields under `model`
 - it does not mutate `auth.json` credential pools
@@ -68,8 +69,8 @@ The helper intentionally stays narrow:
 - it does not accept arbitrary custom base URLs
 
 Matching custom credential pools remain a blocking manual-resolution case in
-v1. Matching `providers:` entries, duplicate matching entries, and
-`custom_providers` entries not named `gonkagate` are blocking
+v1. Non-managed matching `providers:` / `custom_providers` entries and
+duplicate matching entries are blocking
 manual-resolution cases; the helper manages only the named GonkaGate provider
 entry.
 
