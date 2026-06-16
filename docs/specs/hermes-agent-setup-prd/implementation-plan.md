@@ -43,7 +43,7 @@ release surfaces only after the runtime and qualification evidence exist.
   `npx @gonkagate/hermes-agent-setup`.
 - The installed primary bin remains `hermes-agent-setup`.
 - The canonical integration path remains the named custom provider
-  `custom:gonkagate`.
+  `gonkagate`.
 - The canonical GonkaGate base URL remains `https://api.gonkagate.com/v1`.
 - GonkaGate secrets belong in `~/.hermes/.env`, not `config.yaml`.
 - Shell profile mutation and arbitrary custom base URLs stay out of scope.
@@ -440,13 +440,13 @@ and present a picker that never accepts arbitrary model ids.
 
 **Description:** Plan and materialize the exact `config.yaml` changes owned by
 the helper. This includes the minimal named `custom_providers` bootstrap for
-missing config, helper-managed `custom:gonkagate` writes, and conflict-only
+missing config, helper-managed `gonkagate` writes, and conflict-only
 cleanup within the PRD limits.
 
 **Acceptance criteria:**
 
-- [ ] The planner writes or updates `custom_providers[name=gonkagate]`,
-      `model.provider = custom:gonkagate`, and `model.default` without broad
+- [ ] The planner writes or updates `providers.gonkagate`,
+      `model.provider = gonkagate`, and `model.default` without broad
       config ownership.
 - [ ] Missing `config.yaml` produces only the exact minimal bootstrap contract
       from FR3 and does not materialize unrelated default sections.
@@ -698,7 +698,7 @@ boundaries.
       describe the shipped helper honestly instead of calling it an unimplemented scaffold.
 - [ ] Package description, CLI help text, and contract constants align with the
       shipped helper while preserving the canonical base URL,
-      `custom:gonkagate` path, `.env` secret placement, unsupported managed installs, and
+      `gonkagate` path, `.env` secret placement, unsupported managed installs, and
       non-U.S. public positioning.
 - [ ] Compatibility alias behavior and release-please-facing package metadata
       remain consistent with the launch product.
@@ -874,7 +874,7 @@ inputs still need owners before the later phases complete:
 - [ ] No task is larger than `L`
 - [ ] Checkpoints exist between every major phase
 - [ ] The plan stays truthful to the shipped runtime state
-- [ ] The plan preserves `custom:gonkagate`,
+- [ ] The plan preserves `gonkagate`,
       `https://api.gonkagate.com/v1`, and `.env` secret storage
 - [ ] Mirrored-skill maintenance is explicitly included
 - [ ] The plan is ready for human review and execution

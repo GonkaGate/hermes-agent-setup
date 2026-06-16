@@ -11,7 +11,7 @@ setup step, not a manual edit of `~/.hermes/config.yaml` and
 `~/.hermes/.env`.
 
 The utility configures Hermes through the named custom provider
-`custom:gonkagate`, stores the raw key in Hermes' `.env`, and only offers
+`gonkagate`, stores the raw key in Hermes' `.env`, and only offers
 models that are live on GonkaGate and launch-qualified for Hermes.
 
 ## Requirements
@@ -69,15 +69,17 @@ It writes:
 The managed config shape is:
 
 ```yaml
-custom_providers:
-  - name: gonkagate
+providers:
+  gonkagate:
+    name: gonkagate
     base_url: https://api.gonkagate.com/v1
     key_env: GONKAGATE_API_KEY
-    api_mode: chat_completions
+    transport: chat_completions
+    discover_models: false
     models:
       <selected-model>: {}
 model:
-  provider: custom:gonkagate
+  provider: gonkagate
   default: <selected-model>
 ```
 
@@ -144,9 +146,9 @@ Use the optional `hermes chat` smoke test when you want runtime proof.
 - package: `@gonkagate/hermes-agent-setup`
 - command: `npx @gonkagate/hermes-agent-setup`
 - installed bin: `hermes-agent-setup`
-- provider path: `custom:gonkagate`
+- provider path: `gonkagate`
 - base URL: `https://api.gonkagate.com/v1`
-- managed config keys: `custom_providers[name=gonkagate]`, `model.provider`,
+- managed config keys: `providers.gonkagate`, `model.provider`,
   `model.default`
 - managed secret key: `GONKAGATE_API_KEY`
 

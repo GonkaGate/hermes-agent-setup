@@ -137,29 +137,30 @@ test("supported setup completes the public onboarding flow end to end", async ()
       stdout.contents,
       /model\.default = qwen\/qwen3-235b-a22b-instruct-2507-fp8/,
     );
-    assert.match(stdout.contents, /model\.provider = custom:gonkagate/);
+    assert.match(stdout.contents, /model\.provider = gonkagate/);
     assert.match(
       stdout.contents,
-      /custom_providers\[name=gonkagate\]\.key_env = GONKAGATE_API_KEY/,
+      /providers\.gonkagate\.key_env = GONKAGATE_API_KEY/,
     );
     assert.match(stdout.contents, /Saved GONKAGATE_API_KEY/);
     assert.match(stdout.contents, /Optional smoke test:/);
     assert.equal(stderr.contents, "");
     assert.deepEqual(YAML.parse(readFileSync(configPath, "utf8")), {
-      custom_providers: [
-        {
-          api_mode: "chat_completions",
+      model: {
+        default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+        provider: "gonkagate",
+      },
+      providers: {
+        gonkagate: {
           base_url: "https://api.gonkagate.com/v1",
+          discover_models: false,
           key_env: "GONKAGATE_API_KEY",
           models: {
             "qwen/qwen3-235b-a22b-instruct-2507-fp8": {},
           },
           name: "gonkagate",
+          transport: "chat_completions",
         },
-      ],
-      model: {
-        default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
-        provider: "custom:gonkagate",
       },
     });
     assert.equal(

@@ -13,7 +13,7 @@ The canonical secret contract is:
 - store the key only in the resolved Hermes `.env` file
 - never write the raw key to `config.yaml`
 - write only the non-secret `key_env: GONKAGATE_API_KEY` selector on the
-  managed `custom_providers[name=gonkagate]` entry
+  managed `providers.gonkagate` entry
 - never print the raw key to stdout or stderr
 - redact raw `gp-...` values and `Bearer` tokens in unexpected error paths
 
@@ -21,10 +21,11 @@ The canonical secret contract is:
 
 The helper writes only the minimum GonkaGate-managed surface:
 
-- `custom_providers[name=gonkagate].base_url`
-- `custom_providers[name=gonkagate].key_env`
-- `custom_providers[name=gonkagate].api_mode`
-- `custom_providers[name=gonkagate].models`
+- `providers.gonkagate.base_url`
+- `providers.gonkagate.key_env`
+- `providers.gonkagate.transport`
+- `providers.gonkagate.discover_models`
+- `providers.gonkagate.models`
 - `model.provider`
 - `model.default`
 - `GONKAGATE_API_KEY`
@@ -46,12 +47,12 @@ Write safety rules:
 The shipped runtime treats these as active security or correctness surfaces:
 
 - shared `OPENAI_API_KEY` consumers
-- current `providers:` entries that point at the canonical GonkaGate URL
-- duplicate matching `custom_providers` entries or matching entries not named
-  `gonkagate`
+- non-managed `providers:` / `custom_providers` entries that point at the
+  canonical GonkaGate URL
+- duplicate matching provider entries
 - matching `auth.json` credential pools under `credential_pool["custom:*"]`
 
-The helper manages only `custom_providers[name=gonkagate]`. It does not mutate
+The helper manages only `providers.gonkagate`. It does not mutate
 arbitrary provider registries or `auth.json` credential pools in v1. These
 remain blocking manual-resolution cases with Hermes-owned follow-up.
 

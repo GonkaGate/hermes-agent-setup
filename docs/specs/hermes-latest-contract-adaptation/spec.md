@@ -22,7 +22,7 @@ migration tool.
 - Older Hermes versions fail during preflight before secret prompts, catalog
   requests, or file writes.
 - The supported endpoint contract is `config.yaml`
-  `custom_providers[name=gonkagate]`, `model.provider = custom:gonkagate`,
+  `providers.gonkagate`, `model.provider = gonkagate`,
   and `model.default`.
 - The supported secret contract is `.env` `GONKAGATE_API_KEY`.
 - `OPENAI_BASE_URL`, `LLM_MODEL`, root-level `provider` / `base_url`, and
@@ -67,8 +67,8 @@ migration tool.
   GonkaGate key.
 - Running the helper with file-backed or inherited `OPENAI_BASE_URL` does not
   create blocking findings, confirmation items, advisories, or env cleanup.
-- The helper writes only `custom_providers[name=gonkagate]`,
-  `model.provider = custom:gonkagate`, `model.default`, and `.env`
+- The helper writes only `providers.gonkagate`,
+  `model.provider = gonkagate`, `model.default`, and `.env`
   `GONKAGATE_API_KEY` for the primary onboarding path.
 - `npm run ci` passes after code, tests, docs, and qualification metadata are
   reconciled.

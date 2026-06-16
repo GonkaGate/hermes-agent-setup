@@ -30,10 +30,14 @@ function createQualifiedLiveModel(modelId: string): QualifiedLiveModel {
 
 function expectedManagedConfig(modelId = selectedModelId) {
   return {
-    custom_providers: [
-      {
-        api_mode: "chat_completions",
+    model: {
+      default: modelId,
+      provider: "gonkagate",
+    },
+    providers: {
+      gonkagate: {
         base_url: "https://api.gonkagate.com/v1",
+        discover_models: false,
         key_env: "GONKAGATE_API_KEY",
         models: {
           "minimaxai/minimax-m2.7": {},
@@ -41,11 +45,8 @@ function expectedManagedConfig(modelId = selectedModelId) {
           "qwen/qwen3-235b-a22b-instruct-2507-fp8": {},
         },
         name: "gonkagate",
+        transport: "chat_completions",
       },
-    ],
-    model: {
-      default: modelId,
-      provider: "custom:gonkagate",
     },
   };
 }
@@ -83,11 +84,12 @@ test("config planner bootstraps a missing config.yaml with the named provider co
     assert.deepEqual(
       planResult.result.actions.map((action) => action.fieldPath),
       [
-        "custom_providers[name=gonkagate]",
-        "custom_providers[name=gonkagate].base_url",
-        "custom_providers[name=gonkagate].key_env",
-        "custom_providers[name=gonkagate].api_mode",
-        "custom_providers[name=gonkagate].models",
+        "providers.gonkagate",
+        "providers.gonkagate.base_url",
+        "providers.gonkagate.key_env",
+        "providers.gonkagate.transport",
+        "providers.gonkagate.discover_models",
+        "providers.gonkagate.models",
         "model.provider",
         "model.default",
       ],
@@ -135,10 +137,7 @@ test("config planner preserves unrelated sections while rewriting only the helpe
       unknown
     >;
 
-    assert.deepEqual(
-      parsed.custom_providers,
-      expectedManagedConfig().custom_providers,
-    );
+    assert.deepEqual(parsed.providers, expectedManagedConfig().providers);
     assert.deepEqual(parsed.model, expectedManagedConfig().model);
     assert.deepEqual(parsed.auxiliary, {
       vision: {
@@ -186,10 +185,7 @@ test("config planner leaves legacy root provider/base_url keys untouched while w
 
     assert.equal(parsed.provider, "custom");
     assert.equal(parsed.base_url, "https://legacy-endpoint.example/v1");
-    assert.deepEqual(
-      parsed.custom_providers,
-      expectedManagedConfig().custom_providers,
-    );
+    assert.deepEqual(parsed.providers, expectedManagedConfig().providers);
     assert.deepEqual(parsed.model, expectedManagedConfig().model);
   } finally {
     await harness.cleanup();
@@ -205,7 +201,18 @@ test("config planner preserves unrelated custom provider entries while managing 
   try {
     await writeFile(
       configPath,
-      "custom_providers:\n  - name: other\n    base_url: https://other.example/v1\n",
+      [
+        "custom_providers:",
+        "  - name: other",
+        "    base_url: https://other.example/v1",
+        "  - name: gonkagate",
+        "    base_url: https://api.gonkagate.com/v1",
+        "    key_env: GONKAGATE_API_KEY",
+        "    api_mode: chat_completions",
+        "    models:",
+        "      qwen/qwen3-235b-a22b-instruct-2507-fp8: {}",
+        "",
+      ].join("\n"),
       "utf8",
     );
     await harness.installFakeHermesOnPath();
@@ -240,8 +247,8 @@ test("config planner preserves unrelated custom provider entries while managing 
         name: "other",
         base_url: "https://other.example/v1",
       },
-      expectedManagedConfig().custom_providers[0],
     ]);
+    assert.deepEqual(parsed.providers, expectedManagedConfig().providers);
   } finally {
     await harness.cleanup();
   }

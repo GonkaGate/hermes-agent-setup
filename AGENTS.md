@@ -17,7 +17,7 @@ Current honest state:
 - the current CLI resolves the active Hermes context, classifies conflicts,
   prompts for a hidden GonkaGate key, fetches the live catalog, intersects it
   with checked-in launch qualification artifacts, writes the managed
-  `custom_providers[name=gonkagate]` / `model.provider = custom:gonkagate`
+  `providers.gonkagate` / `model.provider = gonkagate`
   Hermes surface, and rolls back if a later write fails
 - checked-in launch qualification artifacts exist under
   `docs/launch-qualification/hermes-agent-setup/`
@@ -35,7 +35,7 @@ Product invariants:
 - Hermes remains the upstream-owned bootstrap flow
 - the primary public entrypoint is `npx @gonkagate/hermes-agent-setup`
 - the installed primary bin is `hermes-agent-setup`
-- the integration path is the named custom provider `custom:gonkagate`
+- the integration path is the named custom provider `gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
 - curated model selection is product-owned
