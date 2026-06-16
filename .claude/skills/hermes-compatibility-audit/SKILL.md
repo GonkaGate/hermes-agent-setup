@@ -28,9 +28,9 @@ Cover the repository's current and planned Hermes-facing contract, especially:
 - config location, resolution, and precedence assumptions for
   `~/.hermes/config.yaml`, `~/.hermes/.env`, `HERMES_HOME`, profiles, and any
   official config-path or env-path surfaces
-- custom-endpoint wiring through `custom_providers[name=gonkagate]`,
-  `model.provider = custom:gonkagate`, `model.default`, `key_env`,
-  `api_mode`, and old direct custom `model.*` cleanup
+- custom-endpoint wiring through `providers.gonkagate`,
+  `model.provider = gonkagate`, `model.default`, `key_env`,
+  `transport`, `discover_models`, and old direct custom `model.*` cleanup
 - model and provider selection assumptions around `hermes model`,
   `provider:model` syntax, curated model choice, and custom provider behavior
 - auth and secret-handling assumptions around `OPENAI_API_KEY`, unsupported
@@ -171,8 +171,8 @@ For the target stable release, gather evidence for:
   profiles, provider wiring, and command surfaces
 - where Hermes loads global config from and how `HERMES_HOME`, profiles, and
   any official config-path commands affect target resolution
-- the official contract for named custom providers, `custom:gonkagate`,
-  `model.default`, `key_env`, `api_mode`, and direct custom cleanup fields
+- the official contract for named custom providers, `gonkagate`,
+  `model.default`, `key_env`, `transport`, `discover_models`, and direct custom cleanup fields
 - whether current Hermes guidance still routes secrets to `.env` and non-secret
   config to `config.yaml`
 - whether unsupported legacy endpoint env such as `OPENAI_BASE_URL`,
@@ -193,7 +193,7 @@ When searching source or docs, start with these literals:
 - `~/.hermes/.env`
 - `HERMES_HOME`
 - `provider: custom`
-- `custom:gonkagate`
+- `gonkagate`
 - `custom_providers`
 - `OPENAI_API_KEY`
 - `OPENAI_BASE_URL`
@@ -208,7 +208,8 @@ When searching source or docs, start with these literals:
 - `hermes doctor`
 - `profile`
 - `base_url`
-- `api_mode`
+- `transport`
+- `discover_models`
 
 ## Workflow
 
@@ -240,7 +241,7 @@ When searching source or docs, start with these literals:
      against the repo's target-home assumptions.
    - `Provider wiring`
      Compare upstream custom-provider expectations against the repo's planned
-     `custom:gonkagate`, canonical base URL, and named-provider usage.
+     `gonkagate`, canonical base URL, and named-provider usage.
    - `Auth and conflict surfaces`
      Compare upstream auth and env behavior against the repo's planned use of
      `.env`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `auth.json`, credential

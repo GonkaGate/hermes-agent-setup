@@ -13,15 +13,17 @@ recommended: true
 ## Sanitized Config Shape
 
 ```yaml
-custom_providers:
-  - name: gonkagate
+providers:
+  gonkagate:
+    name: gonkagate
     base_url: https://api.gonkagate.com/v1
     key_env: GONKAGATE_API_KEY
-    api_mode: chat_completions
+    transport: chat_completions
+    discover_models: false
     models:
       qwen/qwen3-235b-a22b-instruct-2507-fp8: {}
 model:
-  provider: custom:gonkagate
+  provider: gonkagate
   default: qwen/qwen3-235b-a22b-instruct-2507-fp8
 ```
 

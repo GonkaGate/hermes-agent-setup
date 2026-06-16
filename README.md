@@ -30,7 +30,7 @@ primary bin is `hermes-agent-setup`.
 
 This helper is for you if you want Hermes to use GonkaGate as its primary
 OpenAI-compatible endpoint through the named custom provider
-`custom:gonkagate` and `https://api.gonkagate.com/v1`.
+`gonkagate` and `https://api.gonkagate.com/v1`.
 
 You should also have:
 
@@ -67,8 +67,8 @@ The helper manages these Hermes files:
 
 It configures Hermes to use:
 
-- `model.provider = custom:gonkagate`
-- `custom_providers[name=gonkagate]`
+- `model.provider = gonkagate`
+- `providers.gonkagate`
 - `https://api.gonkagate.com/v1`
 
 Your raw GonkaGate key is stored only in `~/.hermes/.env`. It is never written
@@ -77,10 +77,11 @@ managed custom provider.
 
 When setup succeeds, the helper writes only the GonkaGate-managed surface:
 
-- `custom_providers[name=gonkagate].base_url`
-- `custom_providers[name=gonkagate].key_env`
-- `custom_providers[name=gonkagate].api_mode`
-- `custom_providers[name=gonkagate].models`
+- `providers.gonkagate.base_url`
+- `providers.gonkagate.key_env`
+- `providers.gonkagate.transport`
+- `providers.gonkagate.discover_models`
+- `providers.gonkagate.models`
 - `model.provider`
 - `model.default`
 - `GONKAGATE_API_KEY`
@@ -109,7 +110,7 @@ After setup, Hermes can switch between the configured GonkaGate models with
 commands such as:
 
 ```text
-/model custom:gonkagate:moonshotai/kimi-k2.6 --global
+/model gonkagate:moonshotai/kimi-k2.6 --global
 ```
 
 If you need general Hermes setup help or deeper product context first, start at

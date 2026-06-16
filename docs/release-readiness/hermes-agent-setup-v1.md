@@ -7,8 +7,8 @@ for the v1 Hermes contract:
 
 - public entrypoint: `npx @gonkagate/hermes-agent-setup`
 - installed bin: `hermes-agent-setup`
-- canonical integration path: `custom_providers[name=gonkagate]` with
-  `model.provider = custom:gonkagate`
+- canonical integration path: `providers.gonkagate` with
+  `model.provider = gonkagate`
 - canonical base URL: `https://api.gonkagate.com/v1`
 - latest-only Hermes floor and qualification baseline: `v2026.5.16` /
   `v0.14.0`

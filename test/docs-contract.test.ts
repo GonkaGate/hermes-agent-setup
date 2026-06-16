@@ -38,8 +38,9 @@ test("README captures the shipped helper contract", () => {
 
   assert.match(readme, /@gonkagate\/hermes-agent-setup/);
   assert.match(readme, /npx @gonkagate\/hermes-agent-setup/);
-  assert.match(readme, /custom:gonkagate/);
-  assert.match(readme, /custom_providers\[name=gonkagate\]/);
+  assert.match(readme, /model\.provider = gonkagate/);
+  assert.match(readme, /providers\.gonkagate/);
+  assert.match(readme, /discover_models/);
   assert.match(readme, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(readme, /GONKAGATE_API_KEY/);
   assert.match(readme, /key_env/);
@@ -68,7 +69,7 @@ test("AGENTS documents the shipped runtime truth and release workflow", () => {
   assert.match(agents, /end-to-end public onboarding runtime is implemented/i);
   assert.match(agents, /launch qualification artifacts exist/i);
   assert.match(agents, /v2026\.5\.16/);
-  assert.match(agents, /custom:gonkagate/);
+  assert.match(agents, /providers\.gonkagate/);
   assert.match(agents, /https:\/\/api\.gonkagate\.com\/v1/);
   assert.match(agents, /Linux, macOS, and WSL2/i);
   assert.match(
@@ -104,8 +105,8 @@ test("implementation docs capture the shipped runtime, qualification, and securi
   assert.match(howItWorks, /runtime is implemented and shipped/i);
   assert.match(howItWorks, /auth\.json/i);
   assert.match(howItWorks, /custom_providers|providers:/i);
-  assert.match(howItWorks, /custom:gonkagate/i);
-  assert.match(howItWorks, /custom_providers\[name=gonkagate\]/i);
+  assert.match(howItWorks, /providers\.gonkagate/i);
+  assert.match(howItWorks, /discover_models/i);
   assert.match(
     howItWorks,
     /legacy endpoint paths are\s+not cleaned or migrated/i,
@@ -123,7 +124,8 @@ test("implementation docs capture the shipped runtime, qualification, and securi
   assert.match(security, /never write the raw key to `config\.yaml`/i);
   assert.match(security, /GONKAGATE_API_KEY/);
   assert.match(security, /key_env: GONKAGATE_API_KEY/);
-  assert.match(security, /custom_providers\[name=gonkagate\]/);
+  assert.match(security, /providers\.gonkagate/);
+  assert.match(security, /discover_models/);
   assert.match(security, /owner-only `?\.env`? permissions/i);
   assert.match(security, /`auth\.json` credential\s+pools/i);
   assert.match(security, /does not mutate\s+arbitrary provider registries/i);
@@ -145,7 +147,7 @@ test("docs index and release readiness label current versus historical surfaces 
   assert.match(docsIndex, /historical execution record/i);
 
   assert.match(readiness, /FR0 through FR10/i);
-  assert.match(readiness, /custom:gonkagate/);
+  assert.match(readiness, /providers\.gonkagate/);
   assert.match(readiness, /npm run ci/);
   assert.match(readiness, /npm pack --dry-run/);
   assert.match(readiness, /qualification:artifact:validate/);

@@ -1,6 +1,6 @@
 ---
 name: coding-prompt-normalizer
-description: "Turn rough, mixed-language, speech-to-text-like, repetitive, or partially specified coding requests into a high-signal task-context brief and handoff prompt for agents working inside hermes-agent-setup. Use when the hard part is reconstructing the user's real task, preserving exact literals such as `~/.hermes/config.yaml`, `~/.hermes/.env`, `custom:gonkagate`, or `npx @gonkagate/hermes-agent-setup`, grounding the ask in the current shipped-runtime repo truth, and packaging it for downstream execution. Prompt polish is secondary to accurate repo-aware task reconstruction."
+description: "Turn rough, mixed-language, speech-to-text-like, repetitive, or partially specified coding requests into a high-signal task-context brief and handoff prompt for agents working inside hermes-agent-setup. Use when the hard part is reconstructing the user's real task, preserving exact literals such as `~/.hermes/config.yaml`, `~/.hermes/.env`, `gonkagate`, or `npx @gonkagate/hermes-agent-setup`, grounding the ask in the current shipped-runtime repo truth, and packaging it for downstream execution. Prompt polish is secondary to accurate repo-aware task reconstruction."
 ---
 
 # Coding Prompt Normalizer
@@ -130,7 +130,7 @@ them.
 - Do not "improve" or rename tokens like `~/.hermes/config.yaml`,
   `~/.hermes/.env`, `npx @gonkagate/hermes-agent-setup`,
   `hermes-agent-setup`, `gonkagate-hermes-agent-setup`,
-  `custom:gonkagate`, `https://api.gonkagate.com/v1`, `HERMES_HOME`,
+  `gonkagate`, `https://api.gonkagate.com/v1`, `HERMES_HOME`,
   `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `GET /v1/models`, `gp-...`,
   `src/cli.ts`, `src/constants/contract.ts`,
   `docs/specs/hermes-agent-setup-prd/spec.md`, or
