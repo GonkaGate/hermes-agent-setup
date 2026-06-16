@@ -18,11 +18,16 @@ runtime for the latest-only Hermes release contract.
 ## Sanitized Config Shape
 
 ```yaml
+custom_providers:
+  - name: gonkagate
+    base_url: https://api.gonkagate.com/v1
+    key_env: GONKAGATE_API_KEY
+    api_mode: chat_completions
+    models:
+      qwen/qwen3-235b-a22b-instruct-2507-fp8: {}
 model:
-  provider: custom
-  base_url: https://api.gonkagate.com/v1
+  provider: custom:gonkagate
   default: qwen/qwen3-235b-a22b-instruct-2507-fp8
-  api_key: ${GONKAGATE_API_KEY}
 ```
 
 ## Sanitized Env Shape

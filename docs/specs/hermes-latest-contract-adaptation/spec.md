@@ -1,7 +1,7 @@
 # Hermes Latest Contract Adaptation
 
 Status: draft  
-Last updated: 2026-06-02  
+Last updated: 2026-06-16
 Verified upstream compatibility: Hermes Agent `v2026.5.29.2` / Hermes
 `v0.15.2`  
 Minimum supported release remains Hermes Agent `v2026.5.16` / Hermes `v0.14.0`
@@ -21,13 +21,13 @@ migration tool.
 - The minimum supported Hermes release is `v2026.5.16` / `0.14.0`.
 - Older Hermes versions fail during preflight before secret prompts, catalog
   requests, or file writes.
-- The supported endpoint contract is `config.yaml` `model.provider`,
-  `model.base_url`, `model.default`, and
-  `model.api_key = ${GONKAGATE_API_KEY}`.
+- The supported endpoint contract is `config.yaml`
+  `custom_providers[name=gonkagate]`, `model.provider = custom:gonkagate`,
+  and `model.default`.
 - The supported secret contract is `.env` `GONKAGATE_API_KEY`.
 - `OPENAI_BASE_URL`, `LLM_MODEL`, root-level `provider` / `base_url`, and
-  legacy `custom_providers` are not supported configuration paths for this
-  helper.
+  arbitrary custom-provider entries are not supported configuration paths for
+  this helper.
 - The helper must not clean, rewrite, block on, or present review items for
   `OPENAI_BASE_URL`.
 - Current Hermes-owned surfaces that can still compete with the helper-managed
@@ -45,7 +45,8 @@ migration tool.
 - Migrating root-level Hermes provider fields into `model.*`.
 - Repairing or deleting legacy `OPENAI_BASE_URL` values from user files or the
   inherited shell environment.
-- Automatically migrating or scrubbing legacy provider registries.
+- Automatically managing arbitrary provider registries outside the
+  `custom_providers` entry named `gonkagate`.
 - Expanding v1 runtime verification beyond the existing bounded
   GonkaGate catalog and launch-qualification contract.
 
@@ -66,8 +67,8 @@ migration tool.
   GonkaGate key.
 - Running the helper with file-backed or inherited `OPENAI_BASE_URL` does not
   create blocking findings, confirmation items, advisories, or env cleanup.
-- The helper still writes only `model.provider`, `model.base_url`,
-  `model.default`, `model.api_key = ${GONKAGATE_API_KEY}`, and `.env`
+- The helper writes only `custom_providers[name=gonkagate]`,
+  `model.provider = custom:gonkagate`, `model.default`, and `.env`
   `GONKAGATE_API_KEY` for the primary onboarding path.
 - `npm run ci` passes after code, tests, docs, and qualification metadata are
   reconciled.

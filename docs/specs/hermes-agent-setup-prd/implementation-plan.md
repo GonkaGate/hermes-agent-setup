@@ -38,11 +38,12 @@ release surfaces only after the runtime and qualification evidence exist.
 
 ## Repository Truth To Preserve
 
-- The repository is still a scaffold until the runtime is actually shipped.
+- The repository ships the onboarding runtime.
 - The primary public entrypoint remains
   `npx @gonkagate/hermes-agent-setup`.
 - The installed primary bin remains `hermes-agent-setup`.
-- The canonical integration path remains `provider: custom`.
+- The canonical integration path remains the named custom provider
+  `custom:gonkagate`.
 - The canonical GonkaGate base URL remains `https://api.gonkagate.com/v1`.
 - GonkaGate secrets belong in `~/.hermes/.env`, not `config.yaml`.
 - Shell profile mutation and arbitrary custom base URLs stay out of scope.
@@ -438,15 +439,15 @@ and present a picker that never accepts arbitrary model ids.
 ## Task 10: Implement the `config.yaml` mutation planner
 
 **Description:** Plan and materialize the exact `config.yaml` changes owned by
-the helper. This includes the minimal `model:` bootstrap for missing config,
-helper-managed `model.*` writes, and conflict-only cleanup within the PRD
-limits.
+the helper. This includes the minimal named `custom_providers` bootstrap for
+missing config, helper-managed `custom:gonkagate` writes, and conflict-only
+cleanup within the PRD limits.
 
 **Acceptance criteria:**
 
-- [ ] The planner writes or updates `model.provider`, `model.base_url`,
-      `model.default`, `model.api_key = ${GONKAGATE_API_KEY}`, and canonical
-      `model.api_mode` state without broad config ownership.
+- [ ] The planner writes or updates `custom_providers[name=gonkagate]`,
+      `model.provider = custom:gonkagate`, and `model.default` without broad
+      config ownership.
 - [ ] Missing `config.yaml` produces only the exact minimal bootstrap contract
       from FR3 and does not materialize unrelated default sections.
 - [ ] Existing unrelated config is preserved semantically, while conflicting
@@ -696,8 +697,8 @@ boundaries.
       [`docs/security.md`](../../security.md), and [`docs/README.md`](../../README.md)
       describe the shipped helper honestly instead of calling it an unimplemented scaffold.
 - [ ] Package description, CLI help text, and contract constants align with the
-      shipped helper while preserving the canonical base URL, `provider: custom`
-      path, `.env` secret placement, unsupported managed installs, and
+      shipped helper while preserving the canonical base URL,
+      `custom:gonkagate` path, `.env` secret placement, unsupported managed installs, and
       non-U.S. public positioning.
 - [ ] Compatibility alias behavior and release-please-facing package metadata
       remain consistent with the launch product.
@@ -872,8 +873,8 @@ inputs still need owners before the later phases complete:
       state
 - [ ] No task is larger than `L`
 - [ ] Checkpoints exist between every major phase
-- [ ] The plan stays truthful to the current scaffold state
-- [ ] The plan preserves `provider: custom`,
+- [ ] The plan stays truthful to the shipped runtime state
+- [ ] The plan preserves `custom:gonkagate`,
       `https://api.gonkagate.com/v1`, and `.env` secret storage
 - [ ] Mirrored-skill maintenance is explicitly included
 - [ ] The plan is ready for human review and execution

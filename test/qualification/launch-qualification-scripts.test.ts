@@ -24,7 +24,7 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
 
   writeFileSync(
     configPath,
-    "model:\n  provider: custom\n  base_url: https://api.gonkagate.com/v1\n  default: qwen/qwen3-235b-a22b-instruct-2507-fp8\n  api_key: ${GONKAGATE_API_KEY}\n",
+    "custom_providers:\n  - name: gonkagate\n    base_url: https://api.gonkagate.com/v1\n    key_env: GONKAGATE_API_KEY\n    api_mode: chat_completions\n    models:\n      qwen/qwen3-235b-a22b-instruct-2507-fp8: {}\nmodel:\n  provider: custom:gonkagate\n  default: qwen/qwen3-235b-a22b-instruct-2507-fp8\n",
     "utf8",
   );
   writeFileSync(envPath, "GONKAGATE_API_KEY=gp-super-secret\n", "utf8");
@@ -73,7 +73,8 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
   assert.match(artifact, /modelId: qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
   assert.match(artifact, /recommended: true/);
   assert.match(artifact, /## Sanitized Config Shape/);
-  assert.match(artifact, /api_key: \$\{GONKAGATE_API_KEY\}/);
+  assert.match(artifact, /provider: custom:gonkagate/);
+  assert.match(artifact, /key_env: GONKAGATE_API_KEY/);
   assert.match(artifact, /GONKAGATE_API_KEY=\[REDACTED\]/);
   assert.match(artifact, /## Basic Text Turn/);
   assert.match(artifact, /\[REDACTED\]/);

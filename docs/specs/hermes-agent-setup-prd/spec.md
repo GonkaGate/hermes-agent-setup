@@ -241,15 +241,21 @@ Desired behavior:
   insufficient for helper safety decisions
 - a helper-owned success snapshot after one successful run:
   - helper writes `GONKAGATE_API_KEY=<key>` to the resolved Hermes `.env`
-  - helper writes `model.provider = "custom"`
-  - helper writes `model.base_url = "https://api.gonkagate.com/v1"`
+  - helper writes `custom_providers[name=gonkagate].base_url =
+"https://api.gonkagate.com/v1"`
+  - helper writes `custom_providers[name=gonkagate].key_env =
+"GONKAGATE_API_KEY"`
+  - helper writes `custom_providers[name=gonkagate].api_mode =
+"chat_completions"`
+  - helper writes `custom_providers[name=gonkagate].models` from the
+    qualified-live model intersection
+  - helper writes `model.provider = "custom:gonkagate"`
   - helper writes `model.default = <selected-model>`
-  - helper writes `model.api_key = ${GONKAGATE_API_KEY}` as a non-secret env
-    reference
   - helper itself does not persist the GonkaGate secret in `config.yaml`
   - helper clears helper-detected conflicting auth/protocol fields under
     `model` if they would override or make the GonkaGate path ambiguous:
-    `model.api`, incompatible `model.api_mode`
+    old direct `model.base_url`, old direct `model.api_key`, `model.api`, and
+    incompatible `model.api_mode`
 - helper also resolves or aborts on helper-detected matching entries under
   `custom_providers` / `providers:` that point to the same canonical
   GonkaGate URL and would remain an active competing credential/protocol
@@ -418,11 +424,16 @@ The utility must not:
 Exact v1 bootstrap contract when `config.yaml` is absent:
 
 ```yaml
+custom_providers:
+  - name: gonkagate
+    base_url: https://api.gonkagate.com/v1
+    key_env: GONKAGATE_API_KEY
+    api_mode: chat_completions
+    models:
+      <selected-model>: {}
 model:
-  provider: custom
-  base_url: https://api.gonkagate.com/v1
+  provider: custom:gonkagate
   default: <selected-model>
-  api_key: ${GONKAGATE_API_KEY}
 ```
 
 The v1 helper creates no other top-level sections on first write.
@@ -439,8 +450,9 @@ The utility must:
 - write it to `~/.hermes/.env` as `GONKAGATE_API_KEY=<key>`
 - not write it to stdout
 - not write the raw key to `config.yaml`
-- write only `model.api_key = ${GONKAGATE_API_KEY}` to `config.yaml` so latest
-  Hermes sends the dedicated GonkaGate credential to the custom endpoint
+- write only `custom_providers[name=gonkagate].key_env = GONKAGATE_API_KEY`
+  to `config.yaml` so latest Hermes resolves the dedicated GonkaGate
+  credential from `.env`
 - preserve any unrelated existing `OPENAI_API_KEY` instead of treating it as
   the GonkaGate main-path secret
 
@@ -576,8 +588,8 @@ Minimum Hermes smoke suite for inclusion of a model in the v1 allowlist:
 - successful Hermes tool-use turn with a harmless local tool on a clean
   `HERMES_HOME`
 - no launch-blocking regressions in the path that the helper actually
-  configures: `provider: custom` + `model.base_url` +
-  `model.api_key = ${GONKAGATE_API_KEY}` in `config.yaml` +
+  configures: `custom_providers[name=gonkagate]` +
+  `model.provider = custom:gonkagate` in `config.yaml` +
   `GONKAGATE_API_KEY` in `.env`
 
 Launch qualification evidence required for every allowlisted model:
@@ -612,28 +624,22 @@ the launch-qualified Hermes release contract against which this PRD is pinned.
 
 Managed surface for v1:
 
+- `custom_providers[name=gonkagate].base_url`
+- `custom_providers[name=gonkagate].key_env`
+- `custom_providers[name=gonkagate].api_mode`
+- `custom_providers[name=gonkagate].models`
 - `model.provider`
-- `model.base_url`
 - `model.default`
-- `model.api_key = ${GONKAGATE_API_KEY}`
 - `GONKAGATE_API_KEY`
-- canonical main-path protocol selector:
-  - compatible state is an empty / absent `model.api_mode`, or explicit
-    `model.api_mode == "chat_completions"`
 - conflict-only cleanup surface if existing values override or make the
   canonical GonkaGate path ambiguous:
+  - old helper-managed `model.base_url`
+  - old helper-managed `model.api_key`
   - `model.api`
   - any non-empty `model.api_mode` other than `"chat_completions"`
-  - matching `custom_providers[].api_key`
-  - matching `custom_providers[].key_env`
-  - matching `custom_providers[].api_mode` when non-empty and not
-    `"chat_completions"`
-  - matching `providers.<name>.api_key`
-  - matching `providers.<name>.key_env`
-  - matching `providers.<name>.transport` when non-empty and not
-    `"openai_chat"`
-  - matching `providers.<name>.api_mode` when non-empty and not
-    `"chat_completions"`
+  - credential/protocol aliases inside the managed
+    `custom_providers[name=gonkagate]` entry that conflict with
+    `key_env: GONKAGATE_API_KEY` and `api_mode: chat_completions`
 - read-only conflicting credential surface outside `config.yaml`:
   - matching `auth.json` credential pools under
     `credential_pool["custom:*"]` when their pool key resolves from a matching
@@ -684,9 +690,9 @@ Helper must:
 - not persist the GonkaGate secret in `config.yaml`; clearing conflicting
   secret-bearing fields from config is allowed and required when they would
   override `.env`
-- either scrub conflicting auth/protocol fields in matching custom-provider
-  entries, or stop with explicit conflict UX; the helper must not leave an
-  unresolved second credential source for the same canonical GonkaGate URL
+- either update the single managed `custom_providers[name=gonkagate]` entry or
+  stop with explicit conflict UX; the helper must not leave an unresolved
+  second credential source for the same canonical GonkaGate URL
 - v1 must not mutate matching custom credential pools in `auth.json`; if such
   a pool contains a credential for the canonical GonkaGate URL, the helper
   aborts with explicit manual resolution guidance instead of widening scope
@@ -864,8 +870,8 @@ For v1, it is sufficient to provide:
   the key and model availability
 - a clear post-write summary:
   - target config/env paths
+  - the written `custom_providers[name=gonkagate]`
   - the written `model.provider`
-  - the written `model.base_url`
   - the written `model.default`
 
 This PRD must not treat `/v1/models` as sufficient proof of full Hermes
@@ -939,9 +945,8 @@ What is different:
    existing setup.
 4. Existing `model.api_key` / `model.api` / `model.api_mode` can survive
    onboarding and create a false-success state if the helper does not take
-   explicit ownership of those fields. The current helper owns
-   `model.api_key` by setting `${GONKAGATE_API_KEY}` and cleans conflicting
-   `model.api` / `model.api_mode`.
+   explicit ownership of those fields. The current helper removes old direct
+   `model.api_key` and cleans conflicting `model.api` / `model.api_mode`.
 5. Matching entries under `custom_providers` / `providers:` can survive
    onboarding and remain a second active credential source for the same URL if
    the helper looks only at `model.*`.
@@ -984,21 +989,21 @@ What is different:
   Validation: explicitly fail fast and test the helper against Nix/Homebrew
   managed modes.
 
-- [assumption] In Hermes, GonkaGate should be modeled specifically as
-  `provider: custom`, not as a built-in Hermes provider.
+- [assumption] In Hermes, GonkaGate should be modeled specifically as the
+  named custom provider `custom:gonkagate`, not as a built-in Hermes provider.
   Risk: a richer first-class UX may be needed later.
   Validation: confirm that the qualified model flow and auth semantics do not
   require an upstream provider plugin.
 
 - [assumption] Storing the secret in `.env` is better than in `config.yaml`,
-  even if the upstream custom flow still allows `model.api_key`.
+  even if the upstream custom flow still allows inline provider secrets.
   Risk: upstream Hermes-owned flows may still rematerialize a literal secret
   in a matching named custom-provider entry after the helper run.
   Validation: smoke-test runtime using `GONKAGATE_API_KEY` in `.env`,
-  `model.api_key = ${GONKAGATE_API_KEY}` and `model.base_url` in config, and
-  without stale `model.api` / incompatible `model.api_mode`; separately
-  document that this is a helper-owned invariant at write time, not an
-  indefinite global invariant.
+  `custom_providers[name=gonkagate].key_env = GONKAGATE_API_KEY` in config,
+  and without stale direct custom `model.*` fields; separately document that
+  this is a helper-owned invariant at write time, not an indefinite global
+  invariant.
 
 - [assumption] For v1, relying on Hermes path seams and explicit `--profile`
   is sufficient, without inventing a separate helper-specific home-resolution
@@ -1035,9 +1040,9 @@ What is different:
 
 5. Existing shared `OPENAI_API_KEY` state is preserved instead of being used as
    the GonkaGate main-path credential. The helper writes `GONKAGATE_API_KEY`
-   and `model.api_key = ${GONKAGATE_API_KEY}`, so unrelated OpenAI consumers
-   are no longer takeover-confirmation surfaces for the primary onboarding
-   path.
+   and `custom_providers[name=gonkagate].key_env = GONKAGATE_API_KEY`, so
+   unrelated OpenAI consumers are no longer takeover-confirmation surfaces for
+   the primary onboarding path.
 
 6. Matching entries under `custom_providers` / `providers:` that resolve to
    the canonical GonkaGate URL are not treated as harmless residue. If they
@@ -1061,8 +1066,9 @@ What is different:
    inherited exact-match canonical values are warn-only because the helper
    cannot clear the parent shell env.
 
-10. When `config.yaml` is missing, v1 writes only the minimal `model:` block
-    defined in FR3 instead of materializing Hermes `DEFAULT_CONFIG`.
+10. When `config.yaml` is missing, v1 writes only the minimal
+    `custom_providers:` and `model:` blocks defined in FR3 instead of
+    materializing Hermes `DEFAULT_CONFIG`.
 
 11. v1 write ordering is finalized as `config.yaml` first, `.env` second, with
     same-run backups and rollback by pre-run state on post-config `.env`
@@ -1111,12 +1117,11 @@ Primary:
 
 - the user configures GonkaGate in Hermes in one short flow without manually
   editing files
-- after completion, the user's `model.provider`, `model.base_url`,
-  `model.default`, and `model.api_key = ${GONKAGATE_API_KEY}` are set
-  correctly
+- after completion, the user's `custom_providers[name=gonkagate]`,
+  `model.provider = custom:gonkagate`, and `model.default` are set correctly
 - the helper writes the GonkaGate secret only to the resolved Hermes `.env`
-- the helper does not leave stale conflicting `model.api` / incompatible
-  `model.api_mode`
+- the helper does not leave stale direct custom `model.base_url`,
+  `model.api_key`, `model.api`, or incompatible `model.api_mode`
 - the helper does not leave an unresolved matching `custom_providers` /
   `providers:` auth/protocol source for the same canonical GonkaGate URL
 - the helper does not claim success while a matching custom credential pool in
@@ -1157,7 +1162,7 @@ For v1, it is sufficient to have:
 - auxiliary/fallback/cron OpenRouter override detection behavior
 - `cron/jobs.json` direct-endpoint detection behavior
 - stale `model.api_key` / `model.api` / `model.api_mode` resolution UX,
-  including replacing `model.api_key` with `${GONKAGATE_API_KEY}`
+  including deleting old direct `model.api_key`
 - matching `custom_providers` / `providers:` conflict-resolution UX
 - matching `auth.json` custom credential-pool conflict UX
 - conflicting file-backed vs inherited-process-env `OPENAI_BASE_URL`

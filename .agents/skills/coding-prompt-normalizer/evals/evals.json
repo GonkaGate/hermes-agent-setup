@@ -26,12 +26,12 @@
     },
     {
       "id": 2,
-      "prompt": "Please normalize this for an agent: config scope feels shaky around `provider: custom` and `OPENAI_BASE_URL`, but I am not sure whether the problem is docs, shipped installer logic, or Hermes compatibility assumptions. Investigate first, do not jump straight to a patch.",
+      "prompt": "Please normalize this for an agent: config scope feels shaky around `custom:gonkagate` and `OPENAI_BASE_URL`, but I am not sure whether the problem is docs, shipped installer logic, or Hermes compatibility assumptions. Investigate first, do not jump straight to a patch.",
       "expected_output": "A bug-investigation handoff prompt that keeps the exact literals, treats the issue as investigation first, and points toward the relevant docs and design surfaces without forcing an immediate implementation.",
       "files": [],
       "expectations": [
         "The output frames the task as bug investigation or root-cause analysis rather than immediate implementation.",
-        "The output preserves `provider: custom` and `OPENAI_BASE_URL` verbatim.",
+        "The output preserves `custom:gonkagate` and `OPENAI_BASE_URL` verbatim.",
         "The output points toward documentation and product-contract surfaces without claiming a confirmed owner too early."
       ]
     },

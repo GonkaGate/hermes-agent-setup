@@ -13,11 +13,16 @@ recommended: false
 ## Sanitized Config Shape
 
 ```yaml
+custom_providers:
+  - name: gonkagate
+    base_url: https://api.gonkagate.com/v1
+    key_env: GONKAGATE_API_KEY
+    api_mode: chat_completions
+    models:
+      alpha/model-a: {}
 model:
-  provider: custom
-  base_url: https://api.gonkagate.com/v1
+  provider: custom:gonkagate
   default: alpha/model-a
-  api_key: ${GONKAGATE_API_KEY}
 ```
 
 ## Sanitized Env Shape

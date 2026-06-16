@@ -2,6 +2,7 @@ import type {
   MatchingProviderConflict,
   MatchingProviderMatch,
 } from "../../domain/conflicts.js";
+import { GONKAGATE_PROVIDER_NAME } from "../../constants/contract.js";
 import type { NormalizedHermesRead } from "../normalized-read.js";
 
 export function classifyMatchingProviders(
@@ -40,40 +41,21 @@ export function classifyMatchingProviders(
     };
   }
 
-  if (singleMatch.entry.sourceShape === "custom_providers") {
+  if (
+    singleMatch.entry.sourceShape !== "custom_providers" ||
+    singleMatch.entry.normalizedName !== GONKAGATE_PROVIDER_NAME
+  ) {
     return {
       kind: "matching_provider",
       matchingEntries,
-      reason: "legacy_custom_provider_entry",
+      reason: "non_managed_matching_entry",
       status: "blocking",
-    };
-  }
-
-  if (!hasCompetingProviderSelectors(singleMatch.entry)) {
-    return {
-      kind: "matching_provider",
-      matchingEntries,
-      status: "compatible",
     };
   }
 
   return {
     kind: "matching_provider",
     matchingEntries,
-    reason: "competing_provider_selectors",
-    status: "blocking",
+    status: "compatible",
   };
-}
-
-function hasCompetingProviderSelectors(
-  entry: NormalizedHermesRead["namedCustomProviders"][number],
-): boolean {
-  return (
-    entry.apiKey.length > 0 ||
-    entry.rawEntry.api_key_env !== undefined ||
-    entry.rawEntry.key_env !== undefined ||
-    (entry.apiMode.length > 0 && entry.apiMode !== "chat_completions") ||
-    (entry.transport.length > 0 && entry.transport !== "openai_chat") ||
-    entry.nonCanonicalUrlFieldKeys.length > 0
-  );
 }

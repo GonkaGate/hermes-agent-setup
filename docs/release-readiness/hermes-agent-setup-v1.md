@@ -7,7 +7,8 @@ for the v1 Hermes contract:
 
 - public entrypoint: `npx @gonkagate/hermes-agent-setup`
 - installed bin: `hermes-agent-setup`
-- canonical integration path: `provider: custom`
+- canonical integration path: `custom_providers[name=gonkagate]` with
+  `model.provider = custom:gonkagate`
 - canonical base URL: `https://api.gonkagate.com/v1`
 - latest-only Hermes floor and qualification baseline: `v2026.5.16` /
   `v0.14.0`
@@ -42,8 +43,8 @@ This release note ties the shipped runtime back to FR0 through FR10 and the
 Launch Readiness section of the PRD:
 
 - FR0-FR3: public entrypoint, Node floor, platform guardrails, Hermes path
-  resolution, and minimal managed config surface are implemented in `src/cli/`,
-  `src/runtime/`, `src/hermes/`, and the CLI/runtime tests.
+  resolution, and the named custom-provider config surface are implemented in
+  `src/cli/`, `src/runtime/`, `src/hermes/`, and the CLI/runtime tests.
 - FR4-FR7 plus the latest-only adaptation: shared-key, matching provider,
   auth-pool, normalized-read, Hermes version floor, and review-plan behavior
   are implemented in `src/hermes/`, `src/runtime/`, `src/planning/`,

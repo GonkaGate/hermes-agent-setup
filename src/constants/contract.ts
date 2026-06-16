@@ -15,21 +15,30 @@ export const CONTRACT_METADATA = {
   pinnedHermesVersion: "v0.14.0",
   gonkagateApiKeyEnvVar: "GONKAGATE_API_KEY",
   gonkagateApiKeyConfigRef: "${GONKAGATE_API_KEY}",
+  gonkagateProviderName: "gonkagate",
+  gonkagateProviderSelector: "custom:gonkagate",
   launchQualificationArtifactRoot:
     "docs/launch-qualification/hermes-agent-setup",
   nodeFloor: ">=22.14.0",
   runtimePublicState:
-    "The onboarding runtime is implemented: the CLI resolves the active Hermes context, enforces a latest-only Hermes floor, prompts for a hidden GonkaGate key, intersects the live /v1/models catalog with checked-in launch qualification artifacts, handles current conflict surfaces without migrating legacy endpoint paths, writes config.yaml before .env with backups and rollback, and prints a final summary without claiming end-to-end billing readiness.",
+    "The onboarding runtime is implemented: the CLI resolves the active Hermes context, enforces a latest-only Hermes floor, prompts for a hidden GonkaGate key, intersects the live /v1/models catalog with checked-in launch qualification artifacts, handles current conflict surfaces while auto-migrating the helper-managed direct custom endpoint to custom:gonkagate, writes config.yaml before .env with backups and rollback, and prints a final summary without claiming end-to-end billing readiness.",
   supportedPlatforms: ["linux", "macos", "wsl2"] as const,
   explicitlyUnsupportedPlatforms: ["win32", "android", "termux"] as const,
   helperManagedConfigKeys: [
+    "custom_providers[name=gonkagate].base_url",
+    "custom_providers[name=gonkagate].key_env",
+    "custom_providers[name=gonkagate].api_mode",
+    "custom_providers[name=gonkagate].models",
     "model.provider",
-    "model.base_url",
     "model.default",
-    "model.api_key",
   ] as const,
   helperManagedSecretEnvKeys: ["GONKAGATE_API_KEY"] as const,
-  helperCleanupConfigKeys: ["model.api", "model.api_mode"] as const,
+  helperCleanupConfigKeys: [
+    "model.base_url",
+    "model.api_key",
+    "model.api",
+    "model.api_mode",
+  ] as const,
 } as const;
 
 export const PACKAGE_NAME = CONTRACT_METADATA.packageName;
@@ -41,6 +50,9 @@ export const GONKAGATE_API_KEY_ENV_VAR =
   CONTRACT_METADATA.gonkagateApiKeyEnvVar;
 export const GONKAGATE_API_KEY_CONFIG_REF =
   CONTRACT_METADATA.gonkagateApiKeyConfigRef;
+export const GONKAGATE_PROVIDER_NAME = CONTRACT_METADATA.gonkagateProviderName;
+export const GONKAGATE_PROVIDER_SELECTOR =
+  CONTRACT_METADATA.gonkagateProviderSelector;
 export const PRD_PATH = CONTRACT_METADATA.prdPath;
 export const PINNED_HERMES_RELEASE_TAG =
   CONTRACT_METADATA.pinnedHermesReleaseTag;

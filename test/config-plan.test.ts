@@ -1,13 +1,56 @@
 import assert from "node:assert/strict";
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import YAML from "yaml";
 import test from "node:test";
+import type { QualifiedLiveModel } from "../src/gonkagate/qualified-models.js";
 import { buildConfigMutationPlan } from "../src/writes/config-plan.js";
 import { createHermesIntegrationHarness } from "./helpers/harness.js";
 import { loadReviewPlanForFixture } from "./helpers/phase-two.js";
 
 const selectedModelId = "qwen/qwen3-235b-a22b-instruct-2507-fp8";
+const qualifiedLiveModels = [
+  createQualifiedLiveModel("minimaxai/minimax-m2.7"),
+  createQualifiedLiveModel("moonshotai/kimi-k2.6"),
+  createQualifiedLiveModel(selectedModelId),
+] as const;
 
-test("config planner bootstraps a missing config.yaml with the exact minimal FR3 contract", async () => {
+function createQualifiedLiveModel(modelId: string): QualifiedLiveModel {
+  return {
+    artifactPath: `/tmp/${modelId}.md`,
+    hermesCommit: "abcdef1234567890",
+    hermesReleaseTag: "v2026.5.16",
+    modelId,
+    osCoverage: ["linux", "macos", "wsl2"],
+    qualifiedOn: "2026-05-29",
+    recommended: false,
+    slug: modelId.replace(/[^a-z0-9]+/giu, "-").toLowerCase(),
+  };
+}
+
+function expectedManagedConfig(modelId = selectedModelId) {
+  return {
+    custom_providers: [
+      {
+        api_mode: "chat_completions",
+        base_url: "https://api.gonkagate.com/v1",
+        key_env: "GONKAGATE_API_KEY",
+        models: {
+          "minimaxai/minimax-m2.7": {},
+          "moonshotai/kimi-k2.6": {},
+          "qwen/qwen3-235b-a22b-instruct-2507-fp8": {},
+        },
+        name: "gonkagate",
+      },
+    ],
+    model: {
+      default: modelId,
+      provider: "custom:gonkagate",
+    },
+  };
+}
+
+test("config planner bootstraps a missing config.yaml with the named provider contract", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "missing-config",
   });
@@ -25,6 +68,7 @@ test("config planner bootstraps a missing config.yaml with the exact minimal FR3
 
     const planResult = buildConfigMutationPlan({
       plannedConfigScrubs: reviewPlanResult.result.plan.plannedConfigScrubs,
+      qualifiedLiveModels,
       read: reviewPlanResult.result.read,
       selectedModelId,
     });
@@ -38,16 +82,20 @@ test("config planner bootstraps a missing config.yaml with the exact minimal FR3
     assert.equal(planResult.result.existedBefore, false);
     assert.deepEqual(
       planResult.result.actions.map((action) => action.fieldPath),
-      ["model.provider", "model.base_url", "model.default", "model.api_key"],
+      [
+        "custom_providers[name=gonkagate]",
+        "custom_providers[name=gonkagate].base_url",
+        "custom_providers[name=gonkagate].key_env",
+        "custom_providers[name=gonkagate].api_mode",
+        "custom_providers[name=gonkagate].models",
+        "model.provider",
+        "model.default",
+      ],
     );
-    assert.deepEqual(YAML.parse(planResult.result.nextContents), {
-      model: {
-        api_key: "${GONKAGATE_API_KEY}",
-        base_url: "https://api.gonkagate.com/v1",
-        default: selectedModelId,
-        provider: "custom",
-      },
-    });
+    assert.deepEqual(
+      YAML.parse(planResult.result.nextContents),
+      expectedManagedConfig(),
+    );
   } finally {
     await harness.cleanup();
   }
@@ -71,6 +119,7 @@ test("config planner preserves unrelated sections while rewriting only the helpe
 
     const planResult = buildConfigMutationPlan({
       plannedConfigScrubs: reviewPlanResult.result.plan.plannedConfigScrubs,
+      qualifiedLiveModels,
       read: reviewPlanResult.result.read,
       selectedModelId,
     });
@@ -86,12 +135,11 @@ test("config planner preserves unrelated sections while rewriting only the helpe
       unknown
     >;
 
-    assert.deepEqual((parsed.model as Record<string, unknown>) ?? {}, {
-      api_key: "${GONKAGATE_API_KEY}",
-      base_url: "https://api.gonkagate.com/v1",
-      default: selectedModelId,
-      provider: "custom",
-    });
+    assert.deepEqual(
+      parsed.custom_providers,
+      expectedManagedConfig().custom_providers,
+    );
+    assert.deepEqual(parsed.model, expectedManagedConfig().model);
     assert.deepEqual(parsed.auxiliary, {
       vision: {
         provider: "openrouter",
@@ -102,7 +150,7 @@ test("config planner preserves unrelated sections while rewriting only the helpe
   }
 });
 
-test("config planner leaves legacy root provider/base_url keys untouched while writing model.*", async () => {
+test("config planner leaves legacy root provider/base_url keys untouched while writing named provider config", async () => {
   const harness = await createHermesIntegrationHarness({
     fixture: "legacy-root-config",
   });
@@ -120,6 +168,7 @@ test("config planner leaves legacy root provider/base_url keys untouched while w
 
     const planResult = buildConfigMutationPlan({
       plannedConfigScrubs: reviewPlanResult.result.plan.plannedConfigScrubs,
+      qualifiedLiveModels,
       read: reviewPlanResult.result.read,
       selectedModelId,
     });
@@ -137,23 +186,28 @@ test("config planner leaves legacy root provider/base_url keys untouched while w
 
     assert.equal(parsed.provider, "custom");
     assert.equal(parsed.base_url, "https://legacy-endpoint.example/v1");
-    assert.deepEqual(parsed.model, {
-      api_key: "${GONKAGATE_API_KEY}",
-      base_url: "https://api.gonkagate.com/v1",
-      default: selectedModelId,
-      provider: "custom",
-    });
+    assert.deepEqual(
+      parsed.custom_providers,
+      expectedManagedConfig().custom_providers,
+    );
+    assert.deepEqual(parsed.model, expectedManagedConfig().model);
   } finally {
     await harness.cleanup();
   }
 });
 
-test("config planner leaves provider registry entries untouched", async () => {
+test("config planner preserves unrelated custom provider entries while managing gonkagate", async () => {
   const harness = await createHermesIntegrationHarness({
-    fixture: "providers-dict-match",
+    fixture: "clean-home",
   });
+  const configPath = resolve(harness.hermesHomeDir, "config.yaml");
 
   try {
+    await writeFile(
+      configPath,
+      "custom_providers:\n  - name: other\n    base_url: https://other.example/v1\n",
+      "utf8",
+    );
     await harness.installFakeHermesOnPath();
 
     const reviewPlanResult = await loadReviewPlanForFixture(harness);
@@ -166,6 +220,7 @@ test("config planner leaves provider registry entries untouched", async () => {
 
     const planResult = buildConfigMutationPlan({
       plannedConfigScrubs: reviewPlanResult.result.plan.plannedConfigScrubs,
+      qualifiedLiveModels,
       read: reviewPlanResult.result.read,
       selectedModelId,
     });
@@ -180,17 +235,13 @@ test("config planner leaves provider registry entries untouched", async () => {
       string,
       unknown
     >;
-    const providers = parsed.providers as Record<
-      string,
-      Record<string, unknown>
-    >;
-
-    assert.deepEqual(providers.gonkagate, {
-      api: "https://api.gonkagate.com/v1",
-      api_key: "inline-provider-key",
-      api_mode: "codex_responses",
-      transport: "responses",
-    });
+    assert.deepEqual(parsed.custom_providers, [
+      {
+        name: "other",
+        base_url: "https://other.example/v1",
+      },
+      expectedManagedConfig().custom_providers[0],
+    ]);
   } finally {
     await harness.cleanup();
   }
