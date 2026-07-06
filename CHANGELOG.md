@@ -9,6 +9,13 @@ All notable changes to this project will be documented in this file.
 - source user-facing GonkaGate model selection from live `/v1/models` instead
   of checked-in launch qualification artifacts
 
+## [1.3.0](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.2.1...v1.3.0) (2026-07-06)
+
+
+### Features
+
+* fetch GonkaGate models dynamically ([5856737](https://github.com/GonkaGate/hermes-agent-setup/commit/5856737e9e16dffc3f6caf6c8ecda433af7599b3))
+
 ## [1.2.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.2.0...v1.2.1) (2026-06-16)
 
 
