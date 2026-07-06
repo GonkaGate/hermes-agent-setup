@@ -59,8 +59,8 @@ remain blocking manual-resolution cases with Hermes-owned follow-up.
 ## Qualification And Verification Limits
 
 The helper uses `GET /v1/models` as the live auth and catalog check before any
-write, then intersects that result with checked-in launch qualification
-artifacts.
+write. That live response is the runtime source of truth for selectable model
+IDs.
 
 That signal is intentionally limited:
 
@@ -70,7 +70,8 @@ That signal is intentionally limited:
   request
 
 Launch qualification evidence lives under
-`docs/launch-qualification/hermes-agent-setup/`.
+`docs/launch-qualification/hermes-agent-setup/`, but those artifacts are not a
+runtime allowlist.
 
 ## Security Non-Goals
 

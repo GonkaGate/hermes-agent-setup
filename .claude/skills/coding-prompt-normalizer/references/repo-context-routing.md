@@ -31,14 +31,15 @@ Include a repository constraint only when it changes the task:
 - the target public UX is `npx @gonkagate/hermes-agent-setup`
 - the installed primary bin is `hermes-agent-setup`
 - the current CLI is a shipped onboarding entrypoint backed by runtime modules
-  and checked-in qualification artifacts
+  and live `/v1/models` catalog selection
 - the intended Hermes config targets are `~/.hermes/config.yaml` and
   `~/.hermes/.env`
 - the intended integration path is the named custom provider
   `gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
-- curated model selection is product-owned and artifact-backed at runtime
+- selectable models come from live GonkaGate `/v1/models`; checked-in
+  qualification artifacts are evidence only
 - shell profile mutation is out of scope
 - arbitrary custom base URLs are out of scope for the public flow
 - deep runtime verification is out of scope for v1 unless upstream exposes a

@@ -15,12 +15,13 @@ Current honest state:
 - the helper targets latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or
   newer, and fails older Hermes versions during preflight
 - the current CLI resolves the active Hermes context, classifies conflicts,
-  prompts for a hidden GonkaGate key, fetches the live catalog, intersects it
-  with checked-in launch qualification artifacts, writes the managed
+  prompts for a hidden GonkaGate key, fetches the live catalog, uses
+  `/v1/models` as the model source of truth, writes the managed
   `providers.gonkagate` / `model.provider = gonkagate`
   Hermes surface, and rolls back if a later write fails
 - checked-in launch qualification artifacts exist under
-  `docs/launch-qualification/hermes-agent-setup/`
+  `docs/launch-qualification/hermes-agent-setup/` as maintainer evidence, not
+  as a runtime allowlist
 
 If the implementation status, package name, config targets, or product scope
 changes, this file must be updated immediately so it stays truthful.
@@ -38,7 +39,7 @@ Product invariants:
 - the integration path is the named custom provider `gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
-- curated model selection is product-owned
+- user-facing model availability comes from live GonkaGate `/v1/models`
 - latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or newer is the supported
   runtime floor
 - shell profile mutation is out of scope
@@ -73,8 +74,7 @@ Today this repository does not contain:
 - shell profile mutation
 - direct `auth.json` credential-pool mutation
 - native Windows launch support
-- billing or first-request readiness proof beyond the bounded `/v1/models` and
-  launch qualification contract
+- billing or first-request readiness proof beyond the bounded `/v1/models`
 
 ## Repository Structure
 

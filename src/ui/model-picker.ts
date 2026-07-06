@@ -3,15 +3,12 @@ import {
   type OnboardFailure,
 } from "../domain/runtime.js";
 import type { OnboardDependencies } from "../runtime/dependencies.js";
-import type {
-  QualifiedLiveModel,
-  QualifiedModelArtifact,
-} from "../gonkagate/qualified-models.js";
+import type { QualifiedLiveModel } from "../gonkagate/qualified-models.js";
 import { canUseInteractivePrompts } from "./prompts.js";
 
 export interface SelectedQualifiedModel {
   model: QualifiedLiveModel;
-  selectionSource: "auto_single_option" | "interactive";
+  selectionSource: "auto_default" | "auto_single_option" | "interactive";
 }
 
 export async function selectQualifiedModel(
@@ -27,63 +24,46 @@ export async function selectQualifiedModel(
       ok: false;
     }
 > {
-  const sortedModels = [...qualifiedLiveModels].sort((left, right) =>
-    left.modelId.localeCompare(right.modelId),
-  );
+  const liveModels = [...qualifiedLiveModels];
 
-  if (sortedModels.length === 0) {
+  if (liveModels.length === 0) {
     return {
       failure: createQualifiedModelsUnavailableFailure(),
       ok: false,
     };
   }
 
-  if (sortedModels.length === 1) {
-    const [singleModel] = sortedModels;
+  const defaultModel =
+    liveModels.find((model) => model.recommended) ?? liveModels[0];
 
-    if (singleModel === undefined) {
-      return {
-        failure: createQualifiedModelsUnavailableFailure(),
-        ok: false,
-      };
-    }
+  if (defaultModel === undefined) {
+    return {
+      failure: createQualifiedModelsUnavailableFailure(),
+      ok: false,
+    };
+  }
+
+  if (liveModels.length === 1 || !canUseInteractivePrompts(dependencies)) {
+    const selectionSource =
+      liveModels.length === 1 ? "auto_single_option" : "auto_default";
 
     return {
       ok: true,
       result: {
-        model: singleModel,
-        selectionSource: "auto_single_option",
+        model: defaultModel,
+        selectionSource,
       },
     };
   }
-
-  if (!canUseInteractivePrompts(dependencies)) {
-    return {
-      failure: createOnboardFailure("missing_tty", {
-        guidance:
-          "Run the helper in an interactive terminal before choosing a qualified GonkaGate model.",
-        message:
-          "A TTY is required to choose between multiple qualified GonkaGate models.",
-      }),
-      ok: false,
-    };
-  }
-
-  const recommendedModel =
-    sortedModels.find((model) => model.recommended) ?? sortedModels[0];
-
-  if (recommendedModel === undefined) {
-    return {
-      failure: createQualifiedModelsUnavailableFailure(),
-      ok: false,
-    };
-  }
+  const sortedModels = [...liveModels].sort((left, right) =>
+    left.modelId.localeCompare(right.modelId),
+  );
 
   const selectedModelId = await dependencies.prompts.selectOption({
     choices: sortedModels.map((model) =>
-      createModelChoice(model, recommendedModel),
+      createModelChoice(model, defaultModel),
     ),
-    defaultValue: recommendedModel.modelId,
+    defaultValue: defaultModel.modelId,
     message: "Choose the GonkaGate model to configure for Hermes Agent",
     pageSize: Math.min(8, sortedModels.length),
   });
@@ -108,22 +88,25 @@ export async function selectQualifiedModel(
 }
 
 function createModelChoice(
-  model: QualifiedModelArtifact,
-  recommendedModel: QualifiedModelArtifact,
+  model: QualifiedLiveModel,
+  recommendedModel: QualifiedLiveModel,
 ): {
   description: string;
   label: string;
   value: string;
 } {
+  const label =
+    model.displayName === undefined || model.displayName === model.modelId
+      ? model.modelId
+      : `${model.displayName} (${model.modelId})`;
+
   return {
-    description: [
-      `Qualified on ${model.qualifiedOn}`,
-      `Hermes ${model.hermesReleaseTag}`,
-    ].join(" · "),
-    label:
+    description:
       model.modelId === recommendedModel.modelId
-        ? `${model.modelId} (Recommended)`
-        : model.modelId,
+        ? "Live catalog default"
+        : "Live GonkaGate model",
+    label:
+      model.modelId === recommendedModel.modelId ? `${label} (Default)` : label,
     value: model.modelId,
   };
 }
@@ -131,8 +114,8 @@ function createModelChoice(
 function createQualifiedModelsUnavailableFailure(): OnboardFailure {
   return createOnboardFailure("qualified_models_unavailable", {
     guidance:
-      "Check the checked-in qualification artifacts and the live GonkaGate catalog, then rerun the helper.",
+      "Check the live GonkaGate /v1/models catalog, then rerun the helper.",
     message:
-      "The helper could not present a qualified live GonkaGate model choice before any Hermes files were changed.",
+      "The helper could not present a live GonkaGate model choice before any Hermes files were changed.",
   });
 }

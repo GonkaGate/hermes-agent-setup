@@ -99,7 +99,7 @@ test("supported setup completes the public onboarding flow end to end", async ()
   const stderr = createBufferWriter();
   const modelsServer = await harness.startFakeModelsServer({
     responseBody: {
-      data: [{ id: "qwen/qwen3-235b-a22b-instruct-2507-fp8" }],
+      data: [{ id: "live-only/no-artifact-model" }],
       object: "list",
     },
   });
@@ -135,7 +135,7 @@ test("supported setup completes the public onboarding flow end to end", async ()
     assert.match(stdout.contents, /Env path:/);
     assert.match(
       stdout.contents,
-      /model\.default = qwen\/qwen3-235b-a22b-instruct-2507-fp8/,
+      /model\.default = live-only\/no-artifact-model/,
     );
     assert.match(stdout.contents, /model\.provider = gonkagate/);
     assert.match(
@@ -147,7 +147,7 @@ test("supported setup completes the public onboarding flow end to end", async ()
     assert.equal(stderr.contents, "");
     assert.deepEqual(YAML.parse(readFileSync(configPath, "utf8")), {
       model: {
-        default: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+        default: "live-only/no-artifact-model",
         provider: "gonkagate",
       },
       providers: {
@@ -156,7 +156,7 @@ test("supported setup completes the public onboarding flow end to end", async ()
           discover_models: false,
           key_env: "GONKAGATE_API_KEY",
           models: {
-            "qwen/qwen3-235b-a22b-instruct-2507-fp8": {},
+            "live-only/no-artifact-model": {},
           },
           name: "gonkagate",
           transport: "chat_completions",

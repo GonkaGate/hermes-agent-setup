@@ -22,9 +22,10 @@ test("catalog client uses the canonical /v1/models endpoint with Bearer auth", a
   });
   const server = await harness.startFakeModelsServer({
     responseBody: {
+      default: "beta/model-b",
       data: [
-        { id: "alpha/model-a" },
-        { id: "beta/model-b" },
+        { id: "alpha/model-a", name: "Alpha A" },
+        { display_name: "Beta B", id: "beta/model-b" },
         { id: "alpha/model-a" },
       ],
       object: "list",
@@ -51,6 +52,18 @@ test("catalog client uses the canonical /v1/models endpoint with Bearer auth", a
     assert.deepEqual(result.catalog.modelIds, [
       "alpha/model-a",
       "beta/model-b",
+    ]);
+    assert.deepEqual(result.catalog.models, [
+      {
+        displayName: "Alpha A",
+        modelId: "alpha/model-a",
+        recommended: false,
+      },
+      {
+        displayName: "Beta B",
+        modelId: "beta/model-b",
+        recommended: true,
+      },
     ]);
 
     const [request] = server.getCapturedRequests();

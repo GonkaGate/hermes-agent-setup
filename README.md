@@ -49,8 +49,7 @@ In plain language, the helper:
 
 - finds the active Hermes config, including `--profile <name>` if you use one
 - asks for your GonkaGate key through a hidden prompt
-- calls `GET /v1/models`, compares the live catalog with checked-in launch
-  qualification artifacts, and offers only currently qualified models
+- calls `GET /v1/models` and offers the live models returned by GonkaGate
 - writes the minimum Hermes settings needed for GonkaGate
 - rolls back if a later write fails
 
@@ -100,17 +99,16 @@ The shipped helper intentionally stays narrow:
 - it does not support native Windows
 - it does not claim full first-request verification beyond `GET /v1/models`
 
-The current checked-in launch qualification artifacts include:
-
-- `moonshotai/kimi-k2.6` (recommended default)
-- `minimaxai/minimax-m2.7`
-- `qwen/qwen3-235b-a22b-instruct-2507-fp8`
+`GET /v1/models` is the runtime source of truth for selectable models. The
+checked-in launch qualification artifacts are maintainer evidence only; they
+are not a runtime allowlist and do not need repository updates for a live model
+to appear in setup.
 
 After setup, Hermes can switch between the configured GonkaGate models with
 commands such as:
 
 ```text
-/model gonkagate:moonshotai/kimi-k2.6 --global
+/model gonkagate:<model-id> --global
 ```
 
 If you need general Hermes setup help or deeper product context first, start at

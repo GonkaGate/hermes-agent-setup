@@ -17,14 +17,8 @@ const qualifiedLiveModels = [
 
 function createQualifiedLiveModel(modelId: string): QualifiedLiveModel {
   return {
-    artifactPath: `/tmp/${modelId}.md`,
-    hermesCommit: "abcdef1234567890",
-    hermesReleaseTag: "v2026.5.16",
     modelId,
-    osCoverage: ["linux", "macos", "wsl2"],
-    qualifiedOn: "2026-05-29",
     recommended: false,
-    slug: modelId.replace(/[^a-z0-9]+/giu, "-").toLowerCase(),
   };
 }
 

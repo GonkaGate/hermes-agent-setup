@@ -5,6 +5,7 @@ import {
 import type {
   CatalogClientResult,
   LiveGonkaGateCatalog,
+  LiveGonkaGateModel,
 } from "../domain/catalog.js";
 import type { OnboardDependencies } from "../runtime/dependencies.js";
 import type { ValidatedApiKey } from "../validation/api-key.js";
@@ -143,7 +144,12 @@ function extractLiveCatalog(
   }
 
   const dedupedModelIds: string[] = [];
+  const models: LiveGonkaGateModel[] = [];
   const seenModelIds = new Set<string>();
+  const catalogDefaultModelId =
+    readOptionalString(payload.default) ??
+    readOptionalString(payload.default_model) ??
+    readOptionalString(payload.defaultModel);
 
   for (const entry of payload.data) {
     if (
@@ -162,6 +168,19 @@ function extractLiveCatalog(
 
     seenModelIds.add(modelId);
     dedupedModelIds.push(modelId);
+    models.push({
+      displayName:
+        readOptionalString(entry.name) ??
+        readOptionalString(entry.display_name) ??
+        readOptionalString(entry.displayName) ??
+        readOptionalString(entry.label),
+      modelId,
+      recommended:
+        entry.default === true ||
+        entry.is_default === true ||
+        entry.recommended === true ||
+        modelId === catalogDefaultModelId,
+    });
   }
 
   if (dedupedModelIds.length === 0) {
@@ -170,7 +189,14 @@ function extractLiveCatalog(
 
   return {
     modelIds: Object.freeze(dedupedModelIds),
+    models: Object.freeze(models),
   };
+}
+
+function readOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : undefined;
 }
 
 function createCatalogAuthFailure(

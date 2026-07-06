@@ -1,27 +1,25 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import test from "node:test";
-import { resolve } from "node:path";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
 import { preparePhaseThreeSelectionForFixture } from "./helpers/phase-three.js";
 import { createHermesIntegrationHarness } from "./helpers/harness.js";
 
-const testDir = dirname(fileURLToPath(import.meta.url));
-const qualificationFixtureRoot = resolve(
-  testDir,
-  "fixtures",
-  "launch-qualification",
-  "valid-single",
-);
+test("phase-three orchestration reaches a live model choice without mutating files", async (t) => {
+  const qualificationFixtureRoot = mkdtempSync(
+    join(tmpdir(), "empty-hermes-qualification-"),
+  );
 
-test("phase-three orchestration reaches a qualified live model choice without mutating files", async () => {
+  t.after(() => {
+    rmSync(qualificationFixtureRoot, { force: true, recursive: true });
+  });
   const harness = await createHermesIntegrationHarness({
     fixture: "clean-home",
   });
   const server = await harness.startFakeModelsServer({
     responseBody: {
-      data: [{ id: "qwen/qwen3-235b-a22b-instruct-2507-fp8" }],
+      data: [{ id: "live-only/no-artifact-model" }],
       object: "list",
     },
   });
@@ -58,7 +56,7 @@ test("phase-three orchestration reaches a qualified live model choice without mu
 
     assert.equal(
       result.result.selectedModel.model.modelId,
-      "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+      "live-only/no-artifact-model",
     );
     assert.equal(result.result.catalog.modelIds.length, 1);
     assert.deepEqual(harness.readPromptInvocations().readSecretMessages, [

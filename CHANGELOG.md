@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Features
+
+- source user-facing GonkaGate model selection from live `/v1/models` instead
+  of checked-in launch qualification artifacts
+
 ## [1.2.1](https://github.com/GonkaGate/hermes-agent-setup/compare/v1.2.0...v1.2.1) (2026-06-16)
 
 
@@ -105,8 +112,7 @@ All notable changes to this project will be documented in this file.
   `OPENAI_BASE_URL`, matching provider entries, and matching auth pools
 - hidden GonkaGate `gp-...` key prompt with redaction of secrets in diagnostic
   error paths
-- live `/v1/models` catalog fetch with checked-in launch qualification
-  artifact intersection and curated model selection
+- live `/v1/models` catalog fetch for user-facing model selection
 - minimal managed write surface for `model.provider`, `model.base_url`,
   `model.default`, and `OPENAI_API_KEY`
 - deterministic backup, write ordering, and rollback behavior for

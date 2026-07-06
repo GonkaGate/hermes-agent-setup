@@ -1,8 +1,8 @@
 # Implementation Plan: Full PRD Delivery for `@gonkagate/hermes-agent-setup`
 
-> Historical planning document. The shipped runtime, public docs, launch
-> qualification artifacts, and release-readiness note describe current
-> repository truth.
+> Historical planning document. The shipped runtime now uses live
+> `/v1/models` as the model source of truth; launch qualification artifacts are
+> evidence only and are not a runtime allowlist.
 
 Status: draft  
 Last updated: 2026-04-15  
@@ -30,9 +30,8 @@ release surfaces only after the runtime and qualification evidence exist.
   preconditions -> read -> classify conflicts -> prompt for secret ->
   fetch models -> choose model -> review -> backup -> write `config.yaml` ->
   write `.env` -> rollback if needed.
-- Source the user-visible model picker from checked-in launch qualification
-  artifacts plus live `/v1/models` intersection; do not freeze launch model ids
-  inside the PRD itself.
+- Source the user-visible model picker from live `/v1/models`; checked-in
+  launch qualification artifacts are maintainer evidence only.
 - Keep scaffold messaging in public docs and CLI until the end-to-end flow,
   tests, and launch qualification evidence are complete.
 
@@ -396,7 +395,7 @@ and present a picker that never accepts arbitrary model ids.
       model ids, qualification date, and the pinned Hermes release.
 - [ ] Runtime allowlist loading intersects the artifact-backed allowlist with
       the live `/v1/models` catalog and aborts when the intersection is empty.
-- [ ] The interactive picker shows only qualified live models and records the
+- [ ] The interactive picker shows live GonkaGate models and records the
       selected model for the write plan and success summary.
 
 **Verification:**
@@ -424,7 +423,7 @@ and present a picker that never accepts arbitrary model ids.
 
 - [ ] `npm run typecheck` passes
 - [ ] `npm test` passes
-- [ ] The helper can reach a qualified live model choice without mutating any
+- [ ] The helper can reach a live model choice without mutating any
       file
 - [ ] The qualification artifact format is agreed before real launch evidence
       is generated

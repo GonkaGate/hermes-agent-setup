@@ -12,7 +12,7 @@ setup step, not a manual edit of `~/.hermes/config.yaml` and
 
 The utility configures Hermes through the named custom provider
 `gonkagate`, stores the raw key in Hermes' `.env`, and only offers
-models that are live on GonkaGate and launch-qualified for Hermes.
+models returned by live GonkaGate `/v1/models`.
 
 ## Requirements
 
@@ -101,8 +101,8 @@ over unrelated `OPENAI_API_KEY` usage.
 4. Stop on conflicts the utility should not overwrite.
 5. Ask for the GonkaGate key through a hidden prompt.
 6. Fetch `GET https://api.gonkagate.com/v1/models`.
-7. Intersect the live catalog with checked-in Hermes qualification artifacts.
-8. Let the user choose a qualified live model.
+7. Use the live catalog as the model source of truth.
+8. Let the user choose a live GonkaGate model.
 9. Show the planned file changes.
 10. Back up files, write `config.yaml`, then write `.env`.
 11. Roll back `config.yaml` if the `.env` write fails.
@@ -112,19 +112,12 @@ in shell history or process lists.
 
 ## Model selection
 
-Models are not guessed from the live catalog alone. A model must be:
+Models come from GonkaGate `GET /v1/models`. Every valid live model ID returned
+by the API is available to the setup picker and written to
+`providers.gonkagate.models`.
 
-- present in GonkaGate `/v1/models`
-- checked in as launch-qualified for Hermes Agent
-
-Current allowlist:
-
-- `moonshotai/kimi-k2.6` (recommended default)
-- `minimaxai/minimax-m2.7`
-- `qwen/qwen3-235b-a22b-instruct-2507-fp8`
-
-Live-only models are ignored. Artifact-only models that are no longer live are
-ignored too.
+Checked-in launch qualification artifacts remain maintainer evidence. They are
+not a runtime allowlist and do not block live-only models.
 
 ## What `/v1/models` proves
 

@@ -37,10 +37,11 @@ Today the repository ships:
 5. Prompt for a hidden GonkaGate API key and validate the `gp-...` shape
    before any network call.
 6. Call `GET /v1/models` against `https://api.gonkagate.com/v1`, classify
-   terminal auth versus retryable failures, and intersect the live catalog with
-   checked-in launch qualification artifacts.
-7. Pick one qualified live model. Interactive mode keeps the model picker
-   visible; single-option flows may auto-select that one qualified model.
+   terminal auth versus retryable failures, and use the live catalog as the
+   model source of truth.
+7. Pick one live model returned by GonkaGate. Interactive mode keeps the model
+   picker visible; non-interactive flows choose the live default or first
+   returned model.
 8. Build one deterministic pre-write review that includes planned config
    changes and blocking conflicts. The old helper-managed direct custom model
    config is auto-migrated to `gonkagate`; legacy endpoint paths are
@@ -74,16 +75,16 @@ duplicate matching entries are blocking
 manual-resolution cases; the helper manages only the named GonkaGate provider
 entry.
 
-## Qualification And Verification
+## Model Selection And Verification
 
-The runtime is curated-model-first:
+The runtime is live-catalog-first:
 
-- only models with checked-in artifacts under
-  `docs/launch-qualification/hermes-agent-setup/` are eligible
-- the helper still requires those models to remain visible in the live
-  `/v1/models` catalog before offering them
-- live catalog entries without checked-in qualification artifacts are ignored
-  rather than exposed as ad hoc model choices
+- `GET /v1/models` is the source of truth for selectable model IDs
+- every valid live model returned by GonkaGate is eligible for the picker and
+  written provider model list
+- checked-in launch qualification artifacts under
+  `docs/launch-qualification/hermes-agent-setup/` are maintainer evidence, not
+  a runtime allowlist
 - `GET /v1/models` is an auth plus live-catalog signal, not proof of prepaid
   balance or end-to-end readiness for the first billable request
 
@@ -92,10 +93,9 @@ Current proof coverage for the catalog boundary:
 - `test/catalog-client.test.ts` verifies the canonical
   `https://api.gonkagate.com/v1/models` URL, Bearer auth, malformed payload
   rejection, terminal auth failures, retryable 5xx and 429 behavior, quota
-  shaped failures, and retry exhaustion.
-- `test/qualified-models.test.ts` verifies the intersection between the live
-  catalog and checked-in qualification artifacts, including the rule that
-  live-only unqualified entries are not selectable.
+  shaped failures, retry exhaustion, and live model metadata parsing.
+- `test/qualified-models.test.ts` verifies that live catalog models do not need
+  checked-in qualification artifacts.
 - `test/e2e-onboard.test.ts` verifies catalog failures abort before Hermes
   files are written.
 
