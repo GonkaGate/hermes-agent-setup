@@ -12,14 +12,9 @@ import { runPreflightChecks } from "../runtime/preconditions.js";
 import { selectQualifiedModel } from "../ui/model-picker.js";
 import { promptForValidatedApiKey } from "../ui/prompts.js";
 
-export interface PreparePhaseThreeSelectionOptions {
-  qualificationArtifactsRoot?: string;
-}
-
 export async function preparePhaseThreeSelection(
   options: OnboardCliOptions,
   dependencies: OnboardDependencies,
-  phaseThreeOptions: PreparePhaseThreeSelectionOptions = {},
 ): Promise<PhaseThreeSelectionResult> {
   const preflightResult = await runPreflightChecks(options, dependencies);
 
@@ -73,12 +68,8 @@ export async function preparePhaseThreeSelection(
     return catalogResult;
   }
 
-  const qualifiedLiveModelsResult = await loadQualifiedLiveModels(
+  const qualifiedLiveModelsResult = loadQualifiedLiveModels(
     catalogResult.catalog,
-    dependencies,
-    {
-      artifactsRoot: phaseThreeOptions.qualificationArtifactsRoot,
-    },
   );
 
   if (!qualifiedLiveModelsResult.ok) {

@@ -99,8 +99,8 @@ Source-backed facts:
   catalog via `GET /v1/models`.
 - As of `2026-04-15`, public GonkaGate docs and quickstart establish
   `GET /v1/models` as the authoritative source of truth for live model IDs.
-  Exact launch-qualified IDs intentionally must live outside this PRD in
-  versioned qualification artifacts; doc examples are not launch evidence.
+  Launch qualification artifacts are maintainer evidence only; they are not a
+  runtime model allowlist.
 - GonkaGate auth docs position `GET /v1/models` as the first auth smoke test,
   not as proof that a subsequent billable `POST /v1/chat/completions` will
   also succeed; prepaid-balance / quota state remains a separate failure
@@ -184,7 +184,7 @@ Explicitly unsupported in v1:
 1. Reduce GonkaGate setup in Hermes to one short CLI flow.
 2. Remove the need to manually edit `config.yaml` and `.env`.
 3. Accept the `gp-...` key securely and without echoing it.
-4. Restrict model choice to a product-qualified GonkaGate allowlist.
+4. Source model choice from live GonkaGate `/v1/models`.
 5. Change only the minimally necessary Hermes fields.
 6. Preserve unrelated Hermes settings without loss.
 7. Give the user a clear final outcome and next step.
@@ -214,8 +214,8 @@ Current behavior:
 Desired behavior:
 
 - the user runs one GonkaGate utility
-- the user only enters an API key and chooses a model from the qualified live
-  list
+- the user only enters an API key and chooses a model from the live GonkaGate
+  catalog
 - the utility resolves the target Hermes config context itself, updates only
   the minimally required fields, writes the secret safely, and reports the
   final result
@@ -230,10 +230,8 @@ Desired behavior:
 - explicit fail-fast on managed installs / upstream-blocked writes
 - hidden interactive prompt for the `gp-...` API key
 - live fetch of `GET /v1/models` against GonkaGate
-- product-owned qualified allowlist over the live GonkaGate model catalog
-- a picker only for models that are simultaneously:
-  - product-qualified for launch
-  - live in the current GonkaGate catalog
+- model selection sourced from the live GonkaGate model catalog
+- a picker for valid model IDs returned by `GET /v1/models`
 - use public Hermes path/read seams and selective write seams where they do
   not conflict with helper safety requirements
 - a release-pinned Hermes-compatible normalized read view for conflict
@@ -326,9 +324,8 @@ Happy path:
 6. The utility makes an authenticated request to `GET /v1/models` at
    `https://api.gonkagate.com/v1` with bounded retry only for retryable
    network/server failures.
-7. The utility intersects the live catalog with the product-owned qualified
-   allowlist and shows a picker only from qualified live models.
-8. If the live catalog is unavailable or the intersection is empty, the
+7. The utility shows a picker from valid live model IDs returned by GonkaGate.
+8. If the live catalog is unavailable or empty, the
    utility exits before writing with a clear message.
 9. The utility builds a deterministic pre-write plan: target writes,
    matching-entry checks, `OPENAI_BASE_URL` preservation, and dedicated
@@ -557,32 +554,27 @@ validation.
 
 v1 must:
 
-- maintain a product-owned qualified allowlist of models that have passed
-  launch verification for the Hermes use case
 - fetch live `GET /v1/models` before writing
 - use machine-readable model IDs from the live response as the runtime source
-  of truth for intersection with the allowlist
+  of truth for selectable models
 - perform bounded retry/backoff only for retryable transport/server failures
   (`5xx`, transient network errors, and a retryable rate-limit class if it can
   be distinguished from quota failure)
 - treat `401 invalid_api_key`, other terminal auth/access failures, unusable
   response shape, and an empty/inconsistent catalog as terminal pre-write
   failures
-- show the user only the intersection of:
-  - the qualified allowlist
-  - the live catalog
+- show the user valid model IDs returned by the live catalog
 
-If the live catalog is unavailable or the qualified intersection is empty, the
+If the live catalog is unavailable or empty, the
 utility must stop before writing and explicitly explain the reason.
 
-Launch-qualified allowlist policy for v1:
+Launch qualification evidence policy for v1:
 
-- concrete live model IDs are maintained outside this PRD in a versioned
-  launch qualification artifact
-- v1 may still launch with one or more qualified models, but the PRD does not
-  freeze a live GonkaGate model ID as a durable product fact
+- concrete runtime model IDs come from live `/v1/models`
+- versioned launch qualification artifacts may document maintainer evidence,
+  but they do not block runtime model availability
 
-Minimum Hermes smoke suite for inclusion of a model in the v1 allowlist:
+Minimum Hermes smoke suite for launch qualification evidence:
 
 - successful authenticated `GET /v1/models` where the model is visible in the
   live catalog
@@ -595,7 +587,7 @@ Minimum Hermes smoke suite for inclusion of a model in the v1 allowlist:
   `model.provider = gonkagate` in `config.yaml` +
   `GONKAGATE_API_KEY` in `.env`
 
-Launch qualification evidence required for every allowlisted model:
+Launch qualification evidence fields:
 
 - exact Hermes release tag and commit under test
 - exact GonkaGate model ID and qualification date
@@ -897,7 +889,7 @@ The utility must stop before writing under the following conditions:
 - the target install is in managed mode or upstream-blocked write mode
 - `config.yaml` exists but does not parse as YAML
 - the API key fails basic validation
-- live `GET /v1/models` did not return a usable qualified result
+- live `GET /v1/models` did not return a usable model catalog
 - live `GET /v1/models` returned a terminal auth/access failure
 - live `GET /v1/models` exhausted the bounded retry budget on a transient
   catalog or server failure
@@ -961,8 +953,7 @@ What is different:
    `.env` and leave a same-shell false-success state if the helper does not
    distinguish file-backed and inherited env conflicts.
 8. In managed installs, Hermes may forbid local config writes.
-9. The live GonkaGate catalog and the qualified allowlist may diverge and
-   produce zero launchable models.
+9. The live GonkaGate catalog may be empty or temporarily unavailable.
 10. Upstream has no separate stable GonkaGate-specific verify contract, and
     GonkaGate documents tool calling as partial / model-dependent.
 11. If the user has already deeply customized the `model` section, careless
@@ -1016,12 +1007,12 @@ What is different:
   Validation: pressure-test profiles, custom `HERMES_HOME`, and default root
   installs before the implementation freeze.
 
-- [assumption] The launch allowlist must contain only models that passed
-  Hermes-specific qualification for text turn + streaming, and tool calling
-  should be validated separately only when the launch UX actually depends on
-  it.
-  Risk: without this, `/v1/models` can create a false sense of readiness.
-  Validation: approve the launch matrix and run the minimum smoke suite.
+- [assumption] Launch qualification evidence remains useful for release
+  confidence, but runtime availability is determined by `/v1/models`.
+  Risk: without clear wording, users may mistake evidence files for a runtime
+  allowlist.
+  Validation: docs and tests state that live `/v1/models` is the source of
+  truth.
 
 ## Resolved Launch Decisions
 
@@ -1031,9 +1022,8 @@ What is different:
    Compatible Node is the universal runtime precondition; `npm`/`npx` are
    explicit acquisition preconditions for the primary public `npx` path.
 
-2. The initial launch-qualified allowlist is finalized outside this PRD in a
-   versioned launch qualification artifact. v1 may still ship with a
-   single-model launch, but the PRD does not freeze a live GonkaGate model ID.
+2. Runtime model availability is finalized by live GonkaGate `/v1/models`.
+   Versioned launch qualification artifacts remain evidence docs only.
 
 3. The v1 public CLI supports explicit `--profile <name>`. Without that flag,
    the helper respects the current Hermes context and public Hermes path
@@ -1130,8 +1120,7 @@ Primary:
   `providers:` auth/protocol source for the same canonical GonkaGate URL
 - the helper does not claim success while a matching custom credential pool in
   `auth.json` remains active for the same canonical GonkaGate URL
-- the selected model is present both in the qualified allowlist and in live
-  `/v1/models`
+- the selected model is present in live `/v1/models`
 - the helper does not write the GonkaGate secret to `config.yaml`
 
 Secondary:
@@ -1155,10 +1144,10 @@ For v1, it is sufficient to have:
   `config.yaml`
 - backup creation with the finalized sibling naming contract
 - parse-failure behavior
-- live `/models` qualified-allowlist filtering behavior
+- live `/models` selection behavior
 - retry/error-classification behavior for `/v1/models` (`401`, terminal
   auth/access failures, transient `5xx/503`, malformed response)
-- launch qualification evidence for every model in the qualified allowlist
+- launch qualification evidence validation for checked-in evidence artifacts
 - preservation of unrelated shared `OPENAI_API_KEY` state
 - the finite detection matrix for historical shared `OPENAI_API_KEY` blast
   radius

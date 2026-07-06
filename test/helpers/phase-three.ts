@@ -16,8 +16,5 @@ export async function preparePhaseThreeSelectionForFixture(
   return await preparePhaseThreeSelection(
     options.cliOptions ?? {},
     dependencies,
-    {
-      qualificationArtifactsRoot: options.qualificationArtifactsRoot,
-    },
   );
 }

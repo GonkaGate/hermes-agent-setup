@@ -1,13 +1,14 @@
 # Hermes Agent Launch Qualification Artifacts
 
-This directory is the checked-in source of truth for model allowlisting in
-`@gonkagate/hermes-agent-setup`.
+This directory contains checked-in maintainer evidence for Hermes model
+qualification runs.
 
 Runtime policy:
 
-- only models with a checked-in artifact here may be considered allowlisted
-- the helper intersects those artifacts with the live GonkaGate `/v1/models`
-  catalog before presenting any model choice
+- the helper uses live GonkaGate `GET /v1/models` as the runtime source of
+  truth for selectable models
+- artifacts in this directory are not a runtime allowlist and do not block
+  live-only models from setup
 - artifacts are pinned to the latest-only qualified Hermes release contract,
   currently `v2026.5.16`
 - maintainer tooling for preparing sessions, building artifacts, and validating
@@ -36,6 +37,6 @@ Required body sections:
 - `## Streaming Turn`
 - `## Harmless Tool-Use Turn`
 
-If an artifact is missing, malformed, pinned to another Hermes release, or the
-live catalog no longer contains the model, the helper must abort before any
-write.
+If an artifact is missing, malformed, or pinned to another Hermes release, the
+artifact validation tooling must fail. Runtime setup does not read this tree
+when deciding which live models to offer.

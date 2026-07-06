@@ -21,7 +21,7 @@ export const CONTRACT_METADATA = {
     "docs/launch-qualification/hermes-agent-setup",
   nodeFloor: ">=22.14.0",
   runtimePublicState:
-    "The onboarding runtime is implemented: the CLI resolves the active Hermes context, enforces a latest-only Hermes floor, prompts for a hidden GonkaGate key, intersects the live /v1/models catalog with checked-in launch qualification artifacts, handles current conflict surfaces while auto-migrating the helper-managed direct custom endpoint to providers.gonkagate, writes config.yaml before .env with backups and rollback, and prints a final summary without claiming end-to-end billing readiness.",
+    "The onboarding runtime is implemented: the CLI resolves the active Hermes context, enforces a latest-only Hermes floor, prompts for a hidden GonkaGate key, fetches the live /v1/models catalog as the model source of truth, handles current conflict surfaces while auto-migrating the helper-managed direct custom endpoint to providers.gonkagate, writes config.yaml before .env with backups and rollback, and prints a final summary without claiming end-to-end billing readiness.",
   supportedPlatforms: ["linux", "macos", "wsl2"] as const,
   explicitlyUnsupportedPlatforms: ["win32", "android", "termux"] as const,
   helperManagedConfigKeys: [

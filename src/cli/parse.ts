@@ -36,7 +36,8 @@ Current state:
   - Supported launch platforms: Linux, macOS, and WSL2
   - Helper-managed config keys: ${CONTRACT_METADATA.helperManagedConfigKeys.join(", ")}
   - Helper-managed secret keys: ${CONTRACT_METADATA.helperManagedSecretEnvKeys.join(", ")}
-  - Launch qualification artifacts: ${CONTRACT_METADATA.launchQualificationArtifactRoot}/${CONTRACT_METADATA.pinnedHermesReleaseTag}
+  - Model source of truth: live ${CONTRACT_METADATA.canonicalBaseUrl}/models
+  - Launch qualification evidence: ${CONTRACT_METADATA.launchQualificationArtifactRoot}/${CONTRACT_METADATA.pinnedHermesReleaseTag}
 `,
     )
     .exitOverride();

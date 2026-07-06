@@ -39,8 +39,10 @@ This repository does not currently contain:
 
 - the PRD remains the historical v1 product contract; the latest-contract
   adaptation records the current Hermes `v2026.5.16` runtime update
-- launch qualification artifacts are part of the shipped model-selection
-  contract
+- live GonkaGate `/v1/models` is the runtime source of truth for selectable
+  models
+- launch qualification artifacts are maintainer evidence only, not a runtime
+  model allowlist
 - historical documents must be labeled explicitly so scaffold-era planning
   language is not mistaken for current repository truth
 - `README.md` remains the public repository entrypoint

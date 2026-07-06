@@ -126,16 +126,10 @@ test("qualified-model loader rejects multiple recommended artifacts", async () =
   assert.equal(result.failure.details?.reason, "multiple_recommended_models");
 });
 
-test("qualified live models are intersected with the live catalog and sorted by exact model id", async () => {
-  const result = await loadQualifiedLiveModels(
-    {
-      modelIds: ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "alpha/model-a"],
-    },
-    createDependencies(),
-    {
-      artifactsRoot: resolveQualificationFixture("valid-multiple"),
-    },
-  );
+test("live model loader exposes all live catalog models in returned order", () => {
+  const result = loadQualifiedLiveModels({
+    modelIds: ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "alpha/model-a"],
+  });
 
   assert.equal(result.ok, true);
 
@@ -145,23 +139,17 @@ test("qualified live models are intersected with the live catalog and sorted by 
 
   assert.deepEqual(
     result.result.qualifiedLiveModels.map((model) => model.modelId),
-    ["alpha/model-a", "qwen/qwen3-235b-a22b-instruct-2507-fp8"],
+    ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "alpha/model-a"],
   );
 });
 
-test("unqualified live catalog entries are not exposed as selectable models", async () => {
-  const result = await loadQualifiedLiveModels(
-    {
-      modelIds: [
-        "qwen/qwen3-235b-a22b-instruct-2507-fp8",
-        "unqualified/live-only-model",
-      ],
-    },
-    createDependencies(),
-    {
-      artifactsRoot: resolveQualificationFixture("valid-single"),
-    },
-  );
+test("live catalog models do not need checked-in qualification artifacts", () => {
+  const result = loadQualifiedLiveModels({
+    modelIds: [
+      "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+      "unqualified/live-only-model",
+    ],
+  });
 
   assert.equal(result.ok, true);
 
@@ -171,24 +159,14 @@ test("unqualified live catalog entries are not exposed as selectable models", as
 
   assert.deepEqual(
     result.result.qualifiedLiveModels.map((model) => model.modelId),
-    ["qwen/qwen3-235b-a22b-instruct-2507-fp8"],
+    ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "unqualified/live-only-model"],
   );
 });
 
-test("checked-in launch artifacts match the live catalog model id casing", async () => {
-  const result = await loadQualifiedLiveModels(
-    {
-      modelIds: [
-        "minimaxai/minimax-m2.7",
-        "moonshotai/kimi-k2.6",
-        "qwen/qwen3-235b-a22b-instruct-2507-fp8",
-      ],
-    },
-    createDependencies(),
-    {
-      artifactsRoot: checkedInQualificationRoot,
-    },
-  );
+test("checked-in launch artifacts remain readable as evidence", async () => {
+  const result = await loadQualifiedModelArtifacts(createDependencies(), {
+    artifactsRoot: checkedInQualificationRoot,
+  });
 
   assert.equal(result.ok, true);
 
@@ -197,36 +175,19 @@ test("checked-in launch artifacts match the live catalog model id casing", async
   }
 
   assert.deepEqual(
-    result.result.qualifiedLiveModels.map((model) => model.modelId),
+    result.result.artifacts.map((artifact) => artifact.modelId),
     [
       "minimaxai/minimax-m2.7",
       "moonshotai/kimi-k2.6",
       "qwen/qwen3-235b-a22b-instruct-2507-fp8",
     ],
   );
-  assert.equal(
-    result.result.qualifiedLiveModels.find(
-      (model) => model.modelId === "minimaxai/minimax-m2.7",
-    )?.recommended,
-    false,
-  );
-  assert.equal(
-    result.result.qualifiedLiveModels.find(
-      (model) => model.modelId === "moonshotai/kimi-k2.6",
-    )?.recommended,
-    true,
-  );
 });
-test("qualified live model loading aborts on an empty live intersection", async () => {
-  const result = await loadQualifiedLiveModels(
-    {
-      modelIds: ["missing/model"],
-    },
-    createDependencies(),
-    {
-      artifactsRoot: resolveQualificationFixture("valid-single"),
-    },
-  );
+
+test("live model loading aborts on an empty live catalog", () => {
+  const result = loadQualifiedLiveModels({
+    modelIds: [],
+  });
 
   assert.equal(result.ok, false);
 
@@ -235,5 +196,5 @@ test("qualified live model loading aborts on an empty live intersection", async 
   }
 
   assert.equal(result.failure.code, "qualified_models_unavailable");
-  assert.equal(result.failure.details?.reason, "empty_live_intersection");
+  assert.equal(result.failure.details?.reason, "empty_live_catalog");
 });

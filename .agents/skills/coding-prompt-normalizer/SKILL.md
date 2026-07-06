@@ -247,8 +247,7 @@ Do not force all sections when `1-2` focused paragraphs do the job better.
   actually exists in this repo instead of inventing a `.claude` mirror.
 - Do not propose shell profile edits, arbitrary custom base URLs, secrets in
   `config.yaml`, project-local `.env` mutation, or overclaims about behavior
-  the shipped helper or checked-in qualification artifacts do not actually
-  support.
+  the shipped helper or live `/v1/models` catalog does not actually support.
 - Do not optimize mainly for eloquence. A plain handoff with the right context
   is better than a polished prompt that hides uncertainty or repo truth.
 
@@ -278,8 +277,8 @@ and adding the smallest verification needed to stop regression.
 
 Relevant repository context
 - This repository ships `npx @gonkagate/hermes-agent-setup`; prompt assets
-  should reflect the current shipped runtime and checked-in qualification
-  contract.
+  should reflect the current shipped runtime and live `/v1/models` model
+  catalog contract.
 - The current contract surfaces are `README.md`, `AGENTS.md`, `docs/`,
   `src/cli.ts`, `src/constants/contract.ts`, and the contract tests.
 - Local contributor skills are mirrored under `.agents/skills/` and

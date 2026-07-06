@@ -12,8 +12,8 @@ recommended: true
 
 # `moonshotai/kimi-k2.6`
 
-This record defines the checked-in allowlist entry consumed by the shipped
-runtime for the latest-only Hermes release contract.
+This record captures checked-in qualification evidence for the latest-only
+Hermes release contract. It is not consumed as a runtime allowlist entry.
 
 ## Sanitized Config Shape
 
@@ -41,7 +41,7 @@ GONKAGATE_API_KEY=[REDACTED]
 ## Basic Text Turn
 
 Saved basic-text qualification evidence is tracked in the GonkaGate release
-qualification workflow and summarized by this checked-in allowlist record.
+qualification workflow and summarized by this checked-in evidence record.
 
 ## Streaming Turn
 

@@ -7,22 +7,18 @@ import { createNodeOnboardDependencies } from "../src/runtime/dependencies.js";
 function createQualifiedLiveModel(
   modelId: string,
   options: {
+    displayName?: string;
     recommended?: boolean;
   } = {},
 ): QualifiedLiveModel {
   return {
-    artifactPath: `/tmp/${modelId}.md`,
-    hermesCommit: "abcdef1234567890",
-    hermesReleaseTag: "v2026.5.16",
+    displayName: options.displayName,
     modelId,
-    osCoverage: ["linux", "macos", "wsl2"],
-    qualifiedOn: "2026-04-15",
     recommended: options.recommended ?? false,
-    slug: modelId.replace(/[^a-z0-9]+/giu, "-").toLowerCase(),
   };
 }
 
-test("model picker auto-selects a single qualified live model", async () => {
+test("model picker auto-selects a single live model", async () => {
   const result = await selectQualifiedModel(
     [createQualifiedLiveModel("qwen/qwen3-235b-a22b-instruct-2507-fp8")],
     createNodeOnboardDependencies({
@@ -46,7 +42,7 @@ test("model picker auto-selects a single qualified live model", async () => {
   );
 });
 
-test("model picker preserves recommended defaults while presenting models in stable sorted order", async () => {
+test("model picker preserves live defaults while presenting models in stable sorted order", async () => {
   const seenOptions: {
     choices: readonly string[];
     defaultValue?: string;
@@ -94,7 +90,7 @@ test("model picker preserves recommended defaults while presenting models in sta
   assert.equal(result.result.model.modelId, "alpha/model-a");
 });
 
-test("model picker falls back to the first sorted model when no recommended entry exists", async () => {
+test("model picker falls back to the first live model when no recommended entry exists", async () => {
   let capturedDefaultValue: string | undefined;
   const result = await selectQualifiedModel(
     [
@@ -123,5 +119,29 @@ test("model picker falls back to the first sorted model when no recommended entr
   );
 
   assert.equal(result.ok, true);
-  assert.equal(capturedDefaultValue, "alpha/model-a");
+  assert.equal(capturedDefaultValue, "zeta/model-z");
+});
+
+test("model picker auto-selects the first live model without a TTY", async () => {
+  const result = await selectQualifiedModel(
+    [
+      createQualifiedLiveModel("zeta/model-z"),
+      createQualifiedLiveModel("alpha/model-a"),
+    ],
+    createNodeOnboardDependencies({
+      runtime: {
+        stdinIsTTY: false,
+        stdoutIsTTY: false,
+      },
+    }),
+  );
+
+  assert.equal(result.ok, true);
+
+  if (!result.ok) {
+    return;
+  }
+
+  assert.equal(result.result.selectionSource, "auto_default");
+  assert.equal(result.result.model.modelId, "zeta/model-z");
 });

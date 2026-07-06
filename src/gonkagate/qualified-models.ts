@@ -38,7 +38,11 @@ export interface QualifiedModelArtifact {
   slug: string;
 }
 
-export interface QualifiedLiveModel extends QualifiedModelArtifact {}
+export interface QualifiedLiveModel {
+  displayName?: string;
+  modelId: string;
+  recommended: boolean;
+}
 
 export interface LoadQualifiedModelArtifactsResult {
   artifacts: readonly QualifiedModelArtifact[];
@@ -52,7 +56,6 @@ export type QualifiedLiveModelsResult =
   | {
       ok: true;
       result: {
-        artifacts: readonly QualifiedModelArtifact[];
         qualifiedLiveModels: readonly QualifiedLiveModel[];
       };
     }
@@ -142,28 +145,25 @@ export async function loadQualifiedModelArtifacts(
   };
 }
 
-export async function loadQualifiedLiveModels(
+export function loadQualifiedLiveModels(
   catalog: LiveGonkaGateCatalog,
-  dependencies: Pick<OnboardDependencies, "fs">,
-  options: QualifiedModelsLoaderOptions = {},
-): Promise<QualifiedLiveModelsResult> {
-  const artifactsResult = await loadQualifiedModelArtifacts(
-    dependencies,
-    options,
-  );
-
-  if (!artifactsResult.ok) {
-    return artifactsResult;
-  }
-
-  const liveModelIds = new Set(catalog.modelIds);
-  const qualifiedLiveModels = artifactsResult.result.artifacts
-    .filter((artifact) => liveModelIds.has(artifact.modelId))
-    .sort((left, right) => left.modelId.localeCompare(right.modelId));
+): QualifiedLiveModelsResult {
+  const qualifiedLiveModels = (
+    catalog.models ??
+    catalog.modelIds.map((modelId) => ({
+      displayName: undefined,
+      modelId,
+      recommended: false,
+    }))
+  ).map((model) => ({
+    displayName: model.displayName,
+    modelId: model.modelId,
+    recommended: model.recommended,
+  }));
 
   if (qualifiedLiveModels.length === 0) {
     return {
-      failure: createQualifiedModelsFailure("empty_live_intersection"),
+      failure: createLiveModelsFailure(),
       ok: false,
     };
   }
@@ -171,10 +171,21 @@ export async function loadQualifiedLiveModels(
   return {
     ok: true,
     result: {
-      artifacts: artifactsResult.result.artifacts,
       qualifiedLiveModels: Object.freeze(qualifiedLiveModels),
     },
   };
+}
+
+function createLiveModelsFailure(): OnboardFailure {
+  return createOnboardFailure("qualified_models_unavailable", {
+    details: {
+      reason: "empty_live_catalog",
+    },
+    guidance:
+      "Check that the live GonkaGate /v1/models catalog returns at least one model, then rerun the helper.",
+    message:
+      "The helper could not resolve a live GonkaGate model before any Hermes files were changed.",
+  });
 }
 
 function createQualifiedModelsFailure(
@@ -182,7 +193,6 @@ function createQualifiedModelsFailure(
     | "artifact_missing"
     | "artifact_root_unreadable"
     | "duplicate_model_id"
-    | "empty_live_intersection"
     | "invalid_artifact"
     | "multiple_recommended_models",
   details: Record<string, string> = {},
@@ -195,7 +205,7 @@ function createQualifiedModelsFailure(
     guidance:
       "Check the checked-in Hermes launch qualification artifacts and the live GonkaGate catalog, then rerun the helper.",
     message:
-      "The helper could not resolve a qualified live GonkaGate model before any Hermes files were changed.",
+      "The helper could not read the checked-in Hermes launch qualification artifacts.",
   });
 }
 

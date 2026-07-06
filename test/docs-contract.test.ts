@@ -49,10 +49,8 @@ test("README captures the shipped helper contract", () => {
   assert.match(readme, /v2026\.5\.16/);
   assert.match(readme, /OPENAI_BASE_URL/);
   assert.match(readme, /GET \/v1\/models/);
-  assert.match(readme, /launch qualification artifacts/i);
-  assert.match(readme, /moonshotai\/kimi-k2\.6/);
-  assert.match(readme, /minimaxai\/minimax-m2\.7/);
-  assert.match(readme, /qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
+  assert.match(readme, /runtime source of truth for selectable models/i);
+  assert.match(readme, /not a runtime allowlist/i);
   assert.match(readme, /United States of America|U\.S\. territories/i);
   assert.match(readme, /docs\/specs\/hermes-agent-setup-prd\/spec\.md/);
   assert.match(
@@ -117,7 +115,8 @@ test("implementation docs capture the shipped runtime, qualification, and securi
   );
   assert.match(howItWorks, /launch qualification artifacts/i);
   assert.match(howItWorks, /GET \/v1\/models/i);
-  assert.match(howItWorks, /live-only unqualified entries are not selectable/i);
+  assert.match(howItWorks, /source of truth for selectable model IDs/i);
+  assert.match(howItWorks, /not\s+a runtime allowlist/i);
   assert.doesNotMatch(howItWorks, /not implemented yet/i);
 
   assert.match(security, /hidden interactive\s+prompt/i);
