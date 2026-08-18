@@ -37,8 +37,9 @@ Current checked-in artifacts:
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/moonshotai-kimi-k2-6.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/qwen-qwen3-235b-a22b-instruct-2507-fp8.md`
 
-Runtime model availability now comes from live GonkaGate `/v1/models`; these
-artifacts are evidence only and are not a runtime allowlist.
+Runtime model availability, model metadata, and the setup default all come from
+live GonkaGate `/v1/models`; these artifacts are evidence only, are not a
+runtime allowlist, and no longer carry a recommended-model flag.
 
 ## FR Coverage Map
 
@@ -59,8 +60,8 @@ Launch Readiness section of the PRD:
   `src/writes/`, `src/io/`, and the phase-three/phase-four/e2e tests.
 - The catalog proof covers the canonical `GET /v1/models` URL, Bearer auth,
   response-shape validation, retryable 5xx/429 handling, quota-shaped terminal
-  failures, live-only model selection, and pre-write aborts before Hermes file
-  mutation.
+  failures, live-only model selection, optional live model metadata with the
+  id-only gateway fallback, and pre-write aborts before Hermes file mutation.
 - FR10 and Launch Readiness: checked-in launch qualification artifacts,
   validation tooling, public docs, package/CLI truthfulness, mirrored skill
   sync, and contract tests now describe the shipped helper rather than a

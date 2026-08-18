@@ -46,10 +46,10 @@ test("qualified-model loader reads a valid checked-in artifact", async () => {
     result.result.artifacts.map((artifact) => artifact.modelId),
     ["qwen/qwen3-235b-a22b-instruct-2507-fp8"],
   );
-  assert.equal(result.result.artifacts[0]?.recommended, true);
+  assert.equal(result.result.artifacts[0]?.hermesReleaseTag, "v2026.5.16");
 });
 
-test("checked-in launch artifacts recommend Kimi K2.6 as the default", async () => {
+test("checked-in launch artifacts carry no recommended-model flag", async () => {
   const result = await loadQualifiedModelArtifacts(createDependencies());
 
   assert.equal(result.ok, true);
@@ -58,12 +58,9 @@ test("checked-in launch artifacts recommend Kimi K2.6 as the default", async () 
     return;
   }
 
-  assert.deepEqual(
-    result.result.artifacts
-      .filter((artifact) => artifact.recommended)
-      .map((artifact) => artifact.modelId),
-    ["moonshotai/kimi-k2.6"],
-  );
+  for (const artifact of result.result.artifacts) {
+    assert.equal("recommended" in artifact, false);
+  }
 });
 
 test("qualified-model loader rejects malformed front matter", async () => {
@@ -111,21 +108,6 @@ test("qualified-model loader rejects pinned release mismatches", async () => {
   assert.equal(result.failure.details?.reason, "pinned_release_mismatch");
 });
 
-test("qualified-model loader rejects multiple recommended artifacts", async () => {
-  const result = await loadQualifiedModelArtifacts(createDependencies(), {
-    artifactsRoot: resolveQualificationFixture("duplicate-recommended"),
-  });
-
-  assert.equal(result.ok, false);
-
-  if (result.ok) {
-    return;
-  }
-
-  assert.equal(result.failure.code, "qualified_models_unavailable");
-  assert.equal(result.failure.details?.reason, "multiple_recommended_models");
-});
-
 test("live model loader exposes all live catalog models in returned order", () => {
   const result = loadQualifiedLiveModels({
     modelIds: ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "alpha/model-a"],
@@ -141,6 +123,44 @@ test("live model loader exposes all live catalog models in returned order", () =
     result.result.qualifiedLiveModels.map((model) => model.modelId),
     ["qwen/qwen3-235b-a22b-instruct-2507-fp8", "alpha/model-a"],
   );
+});
+
+test("live model loader carries enriched catalog metadata through unchanged", () => {
+  const result = loadQualifiedLiveModels({
+    modelIds: ["deepseek-ai/deepseek-v4-flash-0731", "moonshotai/kimi-k2.6"],
+    models: [
+      {
+        contextLength: 400000,
+        description: "Fast agentic coding model.",
+        displayName: "DeepSeek V4 Flash 0731",
+        modelId: "deepseek-ai/deepseek-v4-flash-0731",
+      },
+      {
+        modelId: "moonshotai/kimi-k2.6",
+      },
+    ],
+  });
+
+  assert.equal(result.ok, true);
+
+  if (!result.ok) {
+    return;
+  }
+
+  assert.deepEqual(result.result.qualifiedLiveModels, [
+    {
+      contextLength: 400000,
+      description: "Fast agentic coding model.",
+      displayName: "DeepSeek V4 Flash 0731",
+      modelId: "deepseek-ai/deepseek-v4-flash-0731",
+    },
+    {
+      contextLength: undefined,
+      description: undefined,
+      displayName: undefined,
+      modelId: "moonshotai/kimi-k2.6",
+    },
+  ]);
 });
 
 test("live catalog models do not need checked-in qualification artifacts", () => {

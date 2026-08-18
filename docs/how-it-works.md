@@ -39,9 +39,9 @@ Today the repository ships:
 6. Call `GET /v1/models` against `https://api.gonkagate.com/v1`, classify
    terminal auth versus retryable failures, and use the live catalog as the
    model source of truth.
-7. Pick one live model returned by GonkaGate. Interactive mode keeps the model
-   picker visible; non-interactive flows choose the live default or first
-   returned model.
+7. Pick one live model returned by GonkaGate. The default is the first model in
+   the live catalog response; interactive mode keeps the model picker visible
+   in catalog order, and non-interactive flows take that same default.
 8. Build one deterministic pre-write review that includes planned config
    changes and blocking conflicts. The old helper-managed direct custom model
    config is auto-migrated to `gonkagate`; legacy endpoint paths are
@@ -82,6 +82,13 @@ The runtime is live-catalog-first:
 - `GET /v1/models` is the source of truth for selectable model IDs
 - every valid live model returned by GonkaGate is eligible for the picker and
   written provider model list
+- the default model is positional: the first entry of the live response. The
+  helper does not carry a checked-in default, and does not rank, sort, or
+  prefer models on its own
+- optional per-model metadata (`name`, `description`, `context_length`) is read
+  from the same response and only used to label picker entries. A gateway that
+  returns just `id` / `object` / `created` / `owned_by` still works: the model
+  ID becomes the label and the generic description is used
 - checked-in launch qualification artifacts under
   `docs/launch-qualification/hermes-agent-setup/` are maintainer evidence, not
   a runtime allowlist

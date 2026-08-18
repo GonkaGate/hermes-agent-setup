@@ -12,7 +12,7 @@ function printHelp() {
   console.log(`Build a checked-in launch qualification artifact.
 
 Usage:
-  node scripts/launch-qualification/build-artifact.mjs --session-dir <dir> --hermes-commit <sha> [--qualified-on <YYYY-MM-DD>] [--os linux,macos,wsl2] [--recommended]
+  node scripts/launch-qualification/build-artifact.mjs --session-dir <dir> --hermes-commit <sha> [--qualified-on <YYYY-MM-DD>] [--os linux,macos,wsl2]
   node scripts/launch-qualification/build-artifact.mjs --model-id <id> --hermes-commit <sha> --config <path> --env <path> --basic-log <path> --stream-log <path> --tool-log <path> --out <path>
 
 Defaults:
@@ -127,9 +127,6 @@ async function main() {
       "qualified-on": {
         type: "string",
       },
-      recommended: {
-        type: "boolean",
-      },
       "session-dir": {
         type: "string",
       },
@@ -232,7 +229,6 @@ async function main() {
     modelId,
     osCoverage,
     qualifiedOn,
-    recommended: values.recommended ?? false,
   }).trim();
   const artifactBody = [
     "---",

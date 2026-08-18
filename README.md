@@ -49,7 +49,10 @@ In plain language, the helper:
 
 - finds the active Hermes config, including `--profile <name>` if you use one
 - asks for your GonkaGate key through a hidden prompt
-- calls `GET /v1/models` and offers the live models returned by GonkaGate
+- calls `GET /v1/models` and offers the live models returned by GonkaGate, in
+  catalog order, preselecting the first one
+- labels each choice with whatever name, description, and context length the
+  live catalog provides, and falls back to the model ID when it provides none
 - writes the minimum Hermes settings needed for GonkaGate
 - rolls back if a later write fails
 
@@ -99,10 +102,11 @@ The shipped helper intentionally stays narrow:
 - it does not support native Windows
 - it does not claim full first-request verification beyond `GET /v1/models`
 
-`GET /v1/models` is the runtime source of truth for selectable models. The
-checked-in launch qualification artifacts are maintainer evidence only; they
-are not a runtime allowlist and do not need repository updates for a live model
-to appear in setup.
+`GET /v1/models` is the runtime source of truth for selectable models, their
+metadata, and which one is preselected. The checked-in launch qualification
+artifacts are maintainer evidence only; they are not a runtime allowlist, they
+do not name a default model, and they do not need repository updates for a live
+model to appear in setup.
 
 After setup, Hermes can switch between the configured GonkaGate models with
 commands such as:

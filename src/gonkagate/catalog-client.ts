@@ -146,10 +146,6 @@ function extractLiveCatalog(
   const dedupedModelIds: string[] = [];
   const models: LiveGonkaGateModel[] = [];
   const seenModelIds = new Set<string>();
-  const catalogDefaultModelId =
-    readOptionalString(payload.default) ??
-    readOptionalString(payload.default_model) ??
-    readOptionalString(payload.defaultModel);
 
   for (const entry of payload.data) {
     if (
@@ -169,17 +165,16 @@ function extractLiveCatalog(
     seenModelIds.add(modelId);
     dedupedModelIds.push(modelId);
     models.push({
+      contextLength:
+        readOptionalPositiveInteger(entry.context_length) ??
+        readOptionalPositiveInteger(entry.contextLength),
+      description: readOptionalString(entry.description),
       displayName:
         readOptionalString(entry.name) ??
         readOptionalString(entry.display_name) ??
         readOptionalString(entry.displayName) ??
         readOptionalString(entry.label),
       modelId,
-      recommended:
-        entry.default === true ||
-        entry.is_default === true ||
-        entry.recommended === true ||
-        modelId === catalogDefaultModelId,
     });
   }
 
@@ -196,6 +191,12 @@ function extractLiveCatalog(
 function readOptionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
+    : undefined;
+}
+
+function readOptionalPositiveInteger(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0
+    ? value
     : undefined;
 }
 

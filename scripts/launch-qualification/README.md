@@ -40,9 +40,11 @@ Build the checked-in artifact from that prepared session:
 ```bash
 npm run qualification:artifact:build -- \
   --session-dir /path/to/session \
-  --hermes-commit <commit-ish> \
-  --recommended
+  --hermes-commit <commit-ish>
 ```
+
+Artifacts record what was qualified, not which model users get by default. The
+setup default is the first model in the live `GET /v1/models` response.
 
 Validate the checked-in artifact tree:
 

@@ -58,7 +58,6 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
       toolLogPath,
       "--out",
       outputPath,
-      "--recommended",
     ],
     {
       cwd: repoRoot,
@@ -71,7 +70,7 @@ test("build-artifact writes a checked-in markdown artifact with sanitized excerp
   const artifact = readFileSync(outputPath, "utf8");
 
   assert.match(artifact, /modelId: qwen\/qwen3-235b-a22b-instruct-2507-fp8/);
-  assert.match(artifact, /recommended: true/);
+  assert.doesNotMatch(artifact, /recommended:/);
   assert.match(artifact, /## Sanitized Config Shape/);
   assert.match(artifact, /provider: gonkagate/);
   assert.match(artifact, /key_env: GONKAGATE_API_KEY/);

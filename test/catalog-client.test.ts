@@ -22,7 +22,6 @@ test("catalog client uses the canonical /v1/models endpoint with Bearer auth", a
   });
   const server = await harness.startFakeModelsServer({
     responseBody: {
-      default: "beta/model-b",
       data: [
         { id: "alpha/model-a", name: "Alpha A" },
         { display_name: "Beta B", id: "beta/model-b" },
@@ -55,14 +54,16 @@ test("catalog client uses the canonical /v1/models endpoint with Bearer auth", a
     ]);
     assert.deepEqual(result.catalog.models, [
       {
+        contextLength: undefined,
+        description: undefined,
         displayName: "Alpha A",
         modelId: "alpha/model-a",
-        recommended: false,
       },
       {
+        contextLength: undefined,
+        description: undefined,
         displayName: "Beta B",
         modelId: "beta/model-b",
-        recommended: true,
       },
     ]);
 
@@ -74,6 +75,142 @@ test("catalog client uses the canonical /v1/models endpoint with Bearer auth", a
       request?.headers.authorization,
       "Bearer gp-live-catalog-secret",
     );
+  } finally {
+    await server.close();
+    await harness.cleanup();
+  }
+});
+
+test("catalog client reads enriched live model metadata in catalog order", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const server = await harness.startFakeModelsServer({
+    responseBody: {
+      data: [
+        {
+          context_length: 400000,
+          created: 1753920000,
+          description: "Fast agentic coding model.",
+          id: "deepseek-ai/deepseek-v4-flash-0731",
+          name: "DeepSeek V4 Flash 0731",
+          object: "model",
+          owned_by: "gonka",
+        },
+        {
+          contextLength: 240000,
+          id: "moonshotai/kimi-k2.6",
+          name: "Kimi K2.6",
+          object: "model",
+        },
+      ],
+      object: "list",
+    },
+  });
+
+  try {
+    const result = await fetchGonkaGateLiveCatalog(
+      createValidatedApiKey(),
+      harness.createDependencies({
+        http: {
+          fetch: server.createFetchOverride(),
+        },
+        sleep: async () => {},
+      }),
+    );
+
+    assert.equal(result.ok, true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    assert.deepEqual(result.catalog.modelIds, [
+      "deepseek-ai/deepseek-v4-flash-0731",
+      "moonshotai/kimi-k2.6",
+    ]);
+    assert.deepEqual(result.catalog.models, [
+      {
+        contextLength: 400000,
+        description: "Fast agentic coding model.",
+        displayName: "DeepSeek V4 Flash 0731",
+        modelId: "deepseek-ai/deepseek-v4-flash-0731",
+      },
+      {
+        contextLength: 240000,
+        description: undefined,
+        displayName: "Kimi K2.6",
+        modelId: "moonshotai/kimi-k2.6",
+      },
+    ]);
+  } finally {
+    await server.close();
+    await harness.cleanup();
+  }
+});
+
+test("catalog client accepts a gateway that returns ids without enriched metadata", async () => {
+  const harness = await createHermesIntegrationHarness({
+    fixture: "clean-home",
+  });
+  const server = await harness.startFakeModelsServer({
+    responseBody: {
+      data: [
+        {
+          created: 0,
+          id: "deepseek-ai/deepseek-v4-flash-0731",
+          object: "model",
+          owned_by: "gonka",
+        },
+        {
+          context_length: null,
+          created: 0,
+          description: null,
+          id: "moonshotai/kimi-k2.6",
+          name: null,
+          object: "model",
+          owned_by: "gonka",
+        },
+      ],
+      object: "list",
+    },
+  });
+
+  try {
+    const result = await fetchGonkaGateLiveCatalog(
+      createValidatedApiKey(),
+      harness.createDependencies({
+        http: {
+          fetch: server.createFetchOverride(),
+        },
+        sleep: async () => {},
+      }),
+    );
+
+    assert.equal(result.ok, true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    assert.deepEqual(result.catalog.modelIds, [
+      "deepseek-ai/deepseek-v4-flash-0731",
+      "moonshotai/kimi-k2.6",
+    ]);
+    assert.deepEqual(result.catalog.models, [
+      {
+        contextLength: undefined,
+        description: undefined,
+        displayName: undefined,
+        modelId: "deepseek-ai/deepseek-v4-flash-0731",
+      },
+      {
+        contextLength: undefined,
+        description: undefined,
+        displayName: undefined,
+        modelId: "moonshotai/kimi-k2.6",
+      },
+    ]);
   } finally {
     await server.close();
     await harness.cleanup();

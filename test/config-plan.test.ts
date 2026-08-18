@@ -18,7 +18,6 @@ const qualifiedLiveModels = [
 function createQualifiedLiveModel(modelId: string): QualifiedLiveModel {
   return {
     modelId,
-    recommended: false,
   };
 }
 

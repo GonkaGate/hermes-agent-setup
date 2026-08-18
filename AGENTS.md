@@ -21,7 +21,7 @@ Current honest state:
   Hermes surface, and rolls back if a later write fails
 - checked-in launch qualification artifacts exist under
   `docs/launch-qualification/hermes-agent-setup/` as maintainer evidence, not
-  as a runtime allowlist
+  as a runtime allowlist and not as a source of default-model selection
 
 If the implementation status, package name, config targets, or product scope
 changes, this file must be updated immediately so it stays truthful.
@@ -39,7 +39,12 @@ Product invariants:
 - the integration path is the named custom provider `gonkagate`
 - the canonical GonkaGate base URL is `https://api.gonkagate.com/v1`
 - secrets belong in `~/.hermes/.env`, not in `config.yaml`
-- user-facing model availability comes from live GonkaGate `/v1/models`
+- user-facing model availability and model metadata come from live GonkaGate
+  `/v1/models`; the repository holds no model catalog, display names, context
+  windows, or default-model constant
+- the setup default is positional: the first model in the live `/v1/models`
+  response. Optional metadata fields such as `name`, `description`, and
+  `context_length` must degrade cleanly when a gateway omits them
 - latest-only Hermes Agent `v2026.5.16` / `v0.14.0` or newer is the supported
   runtime floor
 - shell profile mutation is out of scope

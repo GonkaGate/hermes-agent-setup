@@ -5,7 +5,10 @@ import {
   CONTRACT_METADATA,
   PINNED_HERMES_RELEASE_TAG,
 } from "../constants/contract.js";
-import type { LiveGonkaGateCatalog } from "../domain/catalog.js";
+import type {
+  LiveGonkaGateCatalog,
+  LiveGonkaGateModel,
+} from "../domain/catalog.js";
 import {
   createOnboardFailure,
   type OnboardFailure,
@@ -34,14 +37,22 @@ export interface QualifiedModelArtifact {
   modelId: string;
   osCoverage: readonly string[];
   qualifiedOn: string;
-  recommended: boolean;
   slug: string;
 }
 
+/**
+ * A model offered to the user, sourced from live `GET /v1/models`.
+ *
+ * Metadata beyond `modelId` is optional because gateways that predate the
+ * enriched catalog response only return `id` / `object` / `created` /
+ * `owned_by`. The default model is positional (first live entry), so there is
+ * deliberately no recommendation flag here.
+ */
 export interface QualifiedLiveModel {
+  contextLength?: number;
+  description?: string;
   displayName?: string;
   modelId: string;
-  recommended: boolean;
 }
 
 export interface LoadQualifiedModelArtifactsResult {
@@ -107,7 +118,6 @@ export async function loadQualifiedModelArtifacts(
 
   const artifacts: QualifiedModelArtifact[] = [];
   const seenModelIds = new Set<string>();
-  let recommendedCount = 0;
 
   for (const artifactPath of artifactPaths) {
     const loadedArtifact = await loadArtifact(artifactPath, dependencies);
@@ -126,15 +136,7 @@ export async function loadQualifiedModelArtifacts(
     }
 
     seenModelIds.add(loadedArtifact.result.modelId);
-    recommendedCount += loadedArtifact.result.recommended ? 1 : 0;
     artifacts.push(loadedArtifact.result);
-  }
-
-  if (recommendedCount > 1) {
-    return {
-      failure: createQualifiedModelsFailure("multiple_recommended_models"),
-      ok: false,
-    };
   }
 
   return {
@@ -148,17 +150,13 @@ export async function loadQualifiedModelArtifacts(
 export function loadQualifiedLiveModels(
   catalog: LiveGonkaGateCatalog,
 ): QualifiedLiveModelsResult {
-  const qualifiedLiveModels = (
-    catalog.models ??
-    catalog.modelIds.map((modelId) => ({
-      displayName: undefined,
-      modelId,
-      recommended: false,
-    }))
-  ).map((model) => ({
+  const liveModels: readonly LiveGonkaGateModel[] =
+    catalog.models ?? catalog.modelIds.map((modelId) => ({ modelId }));
+  const qualifiedLiveModels = liveModels.map((model) => ({
+    contextLength: model.contextLength,
+    description: model.description,
     displayName: model.displayName,
     modelId: model.modelId,
-    recommended: model.recommended,
   }));
 
   if (qualifiedLiveModels.length === 0) {
@@ -193,8 +191,7 @@ function createQualifiedModelsFailure(
     | "artifact_missing"
     | "artifact_root_unreadable"
     | "duplicate_model_id"
-    | "invalid_artifact"
-    | "multiple_recommended_models",
+    | "invalid_artifact",
   details: Record<string, string> = {},
 ): OnboardFailure {
   return createOnboardFailure("qualified_models_unavailable", {
@@ -306,7 +303,6 @@ function parseArtifactFrontMatter(
     parsedFrontMatter.hermesReleaseTag,
   );
   const hermesCommit = readRequiredString(parsedFrontMatter.hermesCommit);
-  const recommended = parsedFrontMatter.recommended;
   const osCoverage = readStringArray(parsedFrontMatter.osCoverage);
 
   if (
@@ -314,7 +310,6 @@ function parseArtifactFrontMatter(
     qualifiedOn === undefined ||
     hermesReleaseTag === undefined ||
     hermesCommit === undefined ||
-    typeof recommended !== "boolean" ||
     osCoverage === undefined
   ) {
     return {
@@ -369,7 +364,6 @@ function parseArtifactFrontMatter(
       modelId,
       osCoverage: Object.freeze(osCoverage),
       qualifiedOn,
-      recommended,
       slug,
     },
   };

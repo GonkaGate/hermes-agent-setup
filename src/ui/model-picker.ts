@@ -33,8 +33,9 @@ export async function selectQualifiedModel(
     };
   }
 
-  const defaultModel =
-    liveModels.find((model) => model.recommended) ?? liveModels[0];
+  // The live catalog owns model order, so the first returned model is the
+  // default. The helper never ranks, sorts, or prefers models itself.
+  const defaultModel = liveModels[0];
 
   if (defaultModel === undefined) {
     return {
@@ -55,19 +56,14 @@ export async function selectQualifiedModel(
       },
     };
   }
-  const sortedModels = [...liveModels].sort((left, right) =>
-    left.modelId.localeCompare(right.modelId),
-  );
 
   const selectedModelId = await dependencies.prompts.selectOption({
-    choices: sortedModels.map((model) =>
-      createModelChoice(model, defaultModel),
-    ),
+    choices: liveModels.map((model) => createModelChoice(model, defaultModel)),
     defaultValue: defaultModel.modelId,
     message: "Choose the GonkaGate model to configure for Hermes Agent",
-    pageSize: Math.min(8, sortedModels.length),
+    pageSize: Math.min(8, liveModels.length),
   });
-  const selectedModel = sortedModels.find(
+  const selectedModel = liveModels.find(
     (model) => model.modelId === selectedModelId,
   );
 
@@ -89,26 +85,49 @@ export async function selectQualifiedModel(
 
 function createModelChoice(
   model: QualifiedLiveModel,
-  recommendedModel: QualifiedLiveModel,
+  defaultModel: QualifiedLiveModel,
 ): {
   description: string;
   label: string;
   value: string;
 } {
+  const isDefault = model.modelId === defaultModel.modelId;
   const label =
     model.displayName === undefined || model.displayName === model.modelId
       ? model.modelId
       : `${model.displayName} (${model.modelId})`;
 
   return {
-    description:
-      model.modelId === recommendedModel.modelId
-        ? "Live catalog default"
-        : "Live GonkaGate model",
-    label:
-      model.modelId === recommendedModel.modelId ? `${label} (Default)` : label,
+    description: createModelDescription(model, isDefault),
+    label: isDefault ? `${label} (Default)` : label,
     value: model.modelId,
   };
+}
+
+/**
+ * Builds the picker description from live catalog metadata when the gateway
+ * provides it, and from the previous generic wording when it does not.
+ */
+function createModelDescription(
+  model: QualifiedLiveModel,
+  isDefault: boolean,
+): string {
+  const descriptionParts = [
+    model.description ??
+      (isDefault ? "Live catalog default" : "Live GonkaGate model"),
+  ];
+
+  if (model.contextLength !== undefined) {
+    descriptionParts.push(
+      `${formatContextLength(model.contextLength)} token context`,
+    );
+  }
+
+  return descriptionParts.join(" - ");
+}
+
+function formatContextLength(contextLength: number): string {
+  return new Intl.NumberFormat("en-US").format(contextLength);
 }
 
 function createQualifiedModelsUnavailableFailure(): OnboardFailure {

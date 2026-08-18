@@ -7,7 +7,6 @@ osCoverage:
   - linux
   - macos
   - wsl2
-recommended: false
 ---
 
 # `qwen/qwen3-235b-a22b-instruct-2507-fp8`
