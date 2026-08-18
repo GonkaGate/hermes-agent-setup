@@ -7,7 +7,6 @@ osCoverage:
   - linux
   - macos
   - wsl2
-recommended: false
 ---
 
 # `moonshotai/kimi-k2.6`

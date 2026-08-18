@@ -7,14 +7,16 @@ import { createNodeOnboardDependencies } from "../src/runtime/dependencies.js";
 function createQualifiedLiveModel(
   modelId: string,
   options: {
+    contextLength?: number;
+    description?: string;
     displayName?: string;
-    recommended?: boolean;
   } = {},
 ): QualifiedLiveModel {
   return {
+    contextLength: options.contextLength,
+    description: options.description,
     displayName: options.displayName,
     modelId,
-    recommended: options.recommended ?? false,
   };
 }
 
@@ -42,16 +44,14 @@ test("model picker auto-selects a single live model", async () => {
   );
 });
 
-test("model picker preserves live defaults while presenting models in stable sorted order", async () => {
+test("model picker defaults to the first live model and keeps live catalog order", async () => {
   const seenOptions: {
     choices: readonly string[];
     defaultValue?: string;
   }[] = [];
   const result = await selectQualifiedModel(
     [
-      createQualifiedLiveModel("qwen/qwen3-235b-a22b-instruct-2507-fp8", {
-        recommended: true,
-      }),
+      createQualifiedLiveModel("zeta/model-z"),
       createQualifiedLiveModel("alpha/model-a"),
     ],
     createNodeOnboardDependencies({
@@ -83,32 +83,43 @@ test("model picker preserves live defaults while presenting models in stable sor
 
   assert.deepEqual(seenOptions, [
     {
-      choices: ["alpha/model-a", "qwen/qwen3-235b-a22b-instruct-2507-fp8"],
-      defaultValue: "qwen/qwen3-235b-a22b-instruct-2507-fp8",
+      choices: ["zeta/model-z", "alpha/model-a"],
+      defaultValue: "zeta/model-z",
     },
   ]);
   assert.equal(result.result.model.modelId, "alpha/model-a");
 });
 
-test("model picker falls back to the first live model when no recommended entry exists", async () => {
-  let capturedDefaultValue: string | undefined;
+test("model picker renders live catalog metadata when the gateway provides it", async () => {
+  const seenChoices: {
+    description?: string;
+    label: string;
+    value: string;
+  }[] = [];
   const result = await selectQualifiedModel(
     [
-      createQualifiedLiveModel("zeta/model-z"),
-      createQualifiedLiveModel("alpha/model-a"),
+      createQualifiedLiveModel("deepseek-ai/deepseek-v4-flash-0731", {
+        contextLength: 400000,
+        description: "Fast agentic coding model.",
+        displayName: "DeepSeek V4 Flash 0731",
+      }),
+      createQualifiedLiveModel("moonshotai/kimi-k2.6", {
+        contextLength: 240000,
+        displayName: "Kimi K2.6",
+      }),
     ],
     createNodeOnboardDependencies({
       prompts: {
         async selectOption<TValue extends string>(options: {
-          choices: readonly { value: TValue }[];
+          choices: readonly {
+            description?: string;
+            label: string;
+            value: TValue;
+          }[];
           defaultValue?: TValue;
         }) {
-          capturedDefaultValue = options.defaultValue;
-          return (
-            options.defaultValue ??
-            options.choices[0]?.value ??
-            ("alpha/model-a" as TValue)
-          );
+          seenChoices.push(...options.choices);
+          return options.choices[0]?.value ?? ("" as TValue);
         },
       },
       runtime: {
@@ -119,7 +130,70 @@ test("model picker falls back to the first live model when no recommended entry 
   );
 
   assert.equal(result.ok, true);
-  assert.equal(capturedDefaultValue, "zeta/model-z");
+  assert.deepEqual(seenChoices, [
+    {
+      description: "Fast agentic coding model. - 400,000 token context",
+      label:
+        "DeepSeek V4 Flash 0731 (deepseek-ai/deepseek-v4-flash-0731) (Default)",
+      value: "deepseek-ai/deepseek-v4-flash-0731",
+    },
+    {
+      description: "Live GonkaGate model - 240,000 token context",
+      label: "Kimi K2.6 (moonshotai/kimi-k2.6)",
+      value: "moonshotai/kimi-k2.6",
+    },
+  ]);
+});
+
+test("model picker stays usable when the gateway returns ids without metadata", async () => {
+  const seenChoices: {
+    description?: string;
+    label: string;
+    value: string;
+  }[] = [];
+  const result = await selectQualifiedModel(
+    [
+      createQualifiedLiveModel("deepseek-ai/deepseek-v4-flash-0731"),
+      createQualifiedLiveModel("moonshotai/kimi-k2.6"),
+    ],
+    createNodeOnboardDependencies({
+      prompts: {
+        async selectOption<TValue extends string>(options: {
+          choices: readonly {
+            description?: string;
+            label: string;
+            value: TValue;
+          }[];
+          defaultValue?: TValue;
+        }) {
+          seenChoices.push(...options.choices);
+          return options.choices[0]?.value ?? ("" as TValue);
+        },
+      },
+      runtime: {
+        stdinIsTTY: true,
+        stdoutIsTTY: true,
+      },
+    }),
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(seenChoices, [
+    {
+      description: "Live catalog default",
+      label: "deepseek-ai/deepseek-v4-flash-0731 (Default)",
+      value: "deepseek-ai/deepseek-v4-flash-0731",
+    },
+    {
+      description: "Live GonkaGate model",
+      label: "moonshotai/kimi-k2.6",
+      value: "moonshotai/kimi-k2.6",
+    },
+  ]);
+
+  for (const choice of seenChoices) {
+    assert.doesNotMatch(choice.description ?? "", /0 token|null|undefined/u);
+  }
 });
 
 test("model picker auto-selects the first live model without a TTY", async () => {

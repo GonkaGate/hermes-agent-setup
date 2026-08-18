@@ -7,7 +7,6 @@ osCoverage:
   - linux
   - macos
   - wsl2
-recommended: false
 ---
 
 ## Sanitized Config Shape

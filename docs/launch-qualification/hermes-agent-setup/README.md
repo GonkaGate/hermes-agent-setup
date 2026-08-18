@@ -6,9 +6,11 @@ qualification runs.
 Runtime policy:
 
 - the helper uses live GonkaGate `GET /v1/models` as the runtime source of
-  truth for selectable models
+  truth for selectable models and their metadata
 - artifacts in this directory are not a runtime allowlist and do not block
   live-only models from setup
+- artifacts do not express a recommended or default model; the setup default is
+  the first model in the live `GET /v1/models` response
 - artifacts are pinned to the latest-only qualified Hermes release contract,
   currently `v2026.5.16`
 - maintainer tooling for preparing sessions, building artifacts, and validating
@@ -27,7 +29,6 @@ Required front matter fields:
 - `hermesReleaseTag`
 - `hermesCommit`
 - `osCoverage`
-- `recommended`
 
 Required body sections:
 

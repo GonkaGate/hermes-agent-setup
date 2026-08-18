@@ -16,7 +16,6 @@ test("required docs files exist", () => {
     "docs/how-it-works.md",
     "docs/security.md",
     "docs/launch-qualification/hermes-agent-setup/README.md",
-    "docs/launch-qualification/hermes-agent-setup/v2026.5.16/deepseek-ai-deepseek-v4-flash-0731.md",
     "docs/launch-qualification/hermes-agent-setup/v2026.5.16/minimaxai-minimax-m2-7.md",
     "docs/launch-qualification/hermes-agent-setup/v2026.5.16/moonshotai-kimi-k2-6.md",
     "docs/launch-qualification/hermes-agent-setup/v2026.5.16/qwen-qwen3-235b-a22b-instruct-2507-fp8.md",
@@ -151,7 +150,6 @@ test("docs index and release readiness label current versus historical surfaces 
   assert.match(readiness, /npm run ci/);
   assert.match(readiness, /npm pack --dry-run/);
   assert.match(readiness, /qualification:artifact:validate/);
-  assert.match(readiness, /deepseek-ai\/deepseek-v4-flash-0731/);
   assert.match(readiness, /moonshotai\/kimi-k2\.6/);
   assert.match(readiness, /minimaxai\/minimax-m2\.7/);
   assert.match(readiness, /qwen\/qwen3-235b-a22b-instruct-2507-fp8/);

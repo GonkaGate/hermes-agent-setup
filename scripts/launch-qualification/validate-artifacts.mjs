@@ -147,10 +147,6 @@ function validateArtifactDocument(artifactPath, sourceText, constants) {
     artifactPath,
   );
 
-  if (typeof parsedFrontMatter.recommended !== "boolean") {
-    throw new Error(`${artifactPath}: recommended must be a boolean.`);
-  }
-
   if (hermesReleaseTag !== constants.PINNED_HERMES_RELEASE_TAG) {
     throw new Error(
       `${artifactPath}: expected hermesReleaseTag ${constants.PINNED_HERMES_RELEASE_TAG}, received ${hermesReleaseTag}.`,
@@ -215,7 +211,6 @@ function validateArtifactDocument(artifactPath, sourceText, constants) {
     modelId,
     osCoverage,
     qualifiedOn,
-    recommended: parsedFrontMatter.recommended,
   };
 }
 
@@ -262,7 +257,6 @@ async function main() {
   }
 
   const seenByRelease = new Map();
-  const recommendedCountByRelease = new Map();
 
   for (const artifactPath of artifactPaths) {
     const sourceText = await readFile(artifactPath, "utf8");
@@ -280,18 +274,6 @@ async function main() {
     }
 
     seenByRelease.set(duplicateKey, artifactPath);
-
-    const recommendedCount =
-      (recommendedCountByRelease.get(artifact.hermesReleaseTag) ?? 0) +
-      (artifact.recommended ? 1 : 0);
-
-    recommendedCountByRelease.set(artifact.hermesReleaseTag, recommendedCount);
-
-    if (recommendedCount > 1) {
-      throw new Error(
-        `${artifactPath}: more than one recommended artifact found for ${artifact.hermesReleaseTag}.`,
-      );
-    }
   }
 
   console.log(
