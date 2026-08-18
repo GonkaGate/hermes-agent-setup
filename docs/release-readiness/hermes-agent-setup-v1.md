@@ -15,6 +15,7 @@ for the v1 Hermes contract:
 
 The current checked-in qualification evidence includes these models:
 
+- `deepseek-ai/deepseek-v4-flash-0731` (recommended default)
 - `moonshotai/kimi-k2.6`
 - `minimaxai/minimax-m2.7`
 - `qwen/qwen3-235b-a22b-instruct-2507-fp8`
@@ -33,6 +34,7 @@ Maintainer tooling for new or refreshed qualification evidence lives under:
 
 Current checked-in artifacts:
 
+- `docs/launch-qualification/hermes-agent-setup/v2026.5.16/deepseek-ai-deepseek-v4-flash-0731.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/minimaxai-minimax-m2-7.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/moonshotai-kimi-k2-6.md`
 - `docs/launch-qualification/hermes-agent-setup/v2026.5.16/qwen-qwen3-235b-a22b-instruct-2507-fp8.md`

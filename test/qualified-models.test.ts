@@ -49,7 +49,7 @@ test("qualified-model loader reads a valid checked-in artifact", async () => {
   assert.equal(result.result.artifacts[0]?.recommended, true);
 });
 
-test("checked-in launch artifacts recommend Kimi K2.6 as the default", async () => {
+test("checked-in launch artifacts recommend DeepSeek V4 Flash 0731 as the default", async () => {
   const result = await loadQualifiedModelArtifacts(createDependencies());
 
   assert.equal(result.ok, true);
@@ -62,7 +62,7 @@ test("checked-in launch artifacts recommend Kimi K2.6 as the default", async () 
     result.result.artifacts
       .filter((artifact) => artifact.recommended)
       .map((artifact) => artifact.modelId),
-    ["moonshotai/kimi-k2.6"],
+    ["deepseek-ai/deepseek-v4-flash-0731"],
   );
 });
 
@@ -177,6 +177,7 @@ test("checked-in launch artifacts remain readable as evidence", async () => {
   assert.deepEqual(
     result.result.artifacts.map((artifact) => artifact.modelId),
     [
+      "deepseek-ai/deepseek-v4-flash-0731",
       "minimaxai/minimax-m2.7",
       "moonshotai/kimi-k2.6",
       "qwen/qwen3-235b-a22b-instruct-2507-fp8",

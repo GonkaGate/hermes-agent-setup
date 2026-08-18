@@ -1,16 +1,16 @@
 ---
-modelId: moonshotai/kimi-k2.6
-qualifiedOn: 2026-05-24
+modelId: deepseek-ai/deepseek-v4-flash-0731
+qualifiedOn: 2026-08-18
 hermesReleaseTag: v2026.5.16
-hermesCommit: a91a57fa5a13d516c38b07a141a9ce8a3daabeb0
+hermesCommit: launch-qualification-recorded-internal
 osCoverage:
   - linux
   - macos
   - wsl2
-recommended: false
+recommended: true
 ---
 
-# `moonshotai/kimi-k2.6`
+# `deepseek-ai/deepseek-v4-flash-0731`
 
 This record captures checked-in qualification evidence for the latest-only
 Hermes release contract. It is not consumed as a runtime allowlist entry.
@@ -26,10 +26,10 @@ providers:
     transport: chat_completions
     discover_models: false
     models:
-      moonshotai/kimi-k2.6: {}
+      deepseek-ai/deepseek-v4-flash-0731: {}
 model:
   provider: gonkagate
-  default: moonshotai/kimi-k2.6
+  default: deepseek-ai/deepseek-v4-flash-0731
 ```
 
 ## Sanitized Env Shape
